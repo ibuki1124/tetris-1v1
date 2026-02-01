@@ -7,18 +7,55 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <h1>1v1 対戦テトリス</h1>
-    
     <div id="join-screen">
+        <h1>1v1 Tetris Online</h1>
         <p>対戦する部屋IDを入力してください</p>
         <input type="text" id="room-input" placeholder="例: room1">
         <button onclick="joinRoom()">入室 / 作成</button>
-        <p id="error-msg" style="color: red;"></p>
+        <p id="error-msg"></p>
     </div>
 
-    <div id="game-screen" style="display: none;">
-        <h2>部屋: <span id="current-room"></span></h2>
-        <div id="status">対戦相手を待っています...</div>
+    <div id="game-wrapper" style="display: none;">
+        <div class="header-info">
+            Room: <span id="current-room"></span> | <span id="status">Waiting...</span>
+        </div>
+
+        <div class="game-container">
+            <div class="side-panel">
+                <div class="stat-box">
+                    <div class="stat-label">Hold</div>
+                    <canvas id="hold" width="100" height="100" class="preview-canvas"></canvas>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label">Score</div>
+                    <div id="score" class="stat-value">0</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label">Level</div>
+                    <div id="level" class="stat-value">1</div>
+                </div>
+                <div class="controls-guide">
+                    [←/A][→/D]: Move<br>
+                    [↑/W]: Rotate<br>
+                    [↓/S]: Soft Drop<br>
+                    [Space]: Hard Drop<br>
+                    [Shift]: Hold
+                </div>
+            </div>
+
+            <canvas id="game" width="300" height="600"></canvas>
+
+            <div class="side-panel">
+                <div class="stat-box">
+                    <div class="stat-label">Next</div>
+                    <canvas id="next" width="100" height="300" class="preview-canvas"></canvas>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label">Lines</div>
+                    <div id="lines" class="stat-value">0</div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <script src="/socket.io/socket.io.js"></script>
