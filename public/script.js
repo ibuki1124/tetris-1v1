@@ -154,6 +154,7 @@ const nextCtx = document.getElementById('next').getContext('2d');
 let board, score, lines, level, combo, paused;
 let lastTime, dropCounter;
 let bag, nextQueue, holdType, canHold, current;
+let levelTimer = null; // ★追加：レベルアップタイマー用変数
 
 function initGame() {
     board = Array.from({ length: ROWS }, () => Array(COLS).fill(null));
@@ -170,6 +171,16 @@ function initGame() {
     spawn();
     updateUI();
     if(requestId) cancelAnimationFrame(requestId);
+    // ★追加：既存のレベルタイマーがあれば消す
+    if(levelTimer) clearInterval(levelTimer);
+    // ★追加：30秒ごとにレベルを1上げる（最大レベル20まで）
+    levelTimer = setInterval(() => {
+        if (level < 20) {
+            level++;
+            // 画面に「LEVEL UP!」みたいな演出を出しても良いですが、今回はUI更新のみ
+            updateUI();
+        }
+    }, 30000); // 30000ms = 30秒
     update();
 }
 
@@ -257,6 +268,11 @@ function handleGameOver() {
 function stopGameLoop() {
     if(requestId) cancelAnimationFrame(requestId);
     requestId = null;
+    // ★追加：レベルアップタイマーも止める
+    if(levelTimer) {
+      clearInterval(levelTimer);
+      levelTimer = null;
+  }
 }
 
 // ★結果画面表示
@@ -284,7 +300,6 @@ function clearLines() {
   if (count > 0) {
     combo++; lines += count;
     score += ([0, 100, 300, 500, 800][count] + (combo * 50)) * level;
-    level = Math.floor(lines / 10) + 1;
     flashEffect();
     // ▼▼▼ 新規：攻撃ロジック ▼▼▼
     // 2列以上消した時だけ相手に送る
@@ -386,7 +401,8 @@ function update(time = 0) {
     }
 
     const dt = time - lastTime; lastTime = time; dropCounter += dt;
-    const speed = Math.max(50, 1000 - (level - 1) * 100);
+    // 0.85乗していくことで、レベル20まで徐々に速くなるように変更
+    const speed = Math.max(50, 1000 * Math.pow(0.85, level - 1));
     if (dropCounter > speed) {
       if (current && !collide(current.shape, current.x, current.y + 1)) current.y++;
       else if (current) lock();
