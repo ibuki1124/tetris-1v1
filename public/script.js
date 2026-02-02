@@ -1,6 +1,6 @@
 const socket = io();
 let myRoomId = null;
-let requestId = null; // ゲームループ用
+let requestId = null; 
 
 // --- 通信部分 ---
 function joinRoom() {
@@ -11,77 +11,88 @@ function joinRoom() {
     } else alert("部屋IDを入力してください");
 }
 
-socket.on('join_success', (roomId) => {
+function startPractice() {
+    socket.emit('join_practice');
+}
+
+// mode（'multi' か 'solo'）を受け取る
+socket.on('join_success', (roomId, mode) => {
     document.getElementById('join-screen').style.display = 'none';
     document.getElementById('game-wrapper').style.display = 'block';
     document.getElementById('current-room').innerText = roomId;
     
-    // 待機中表示
-    document.getElementById('status').innerText = "対戦相手を待っています...";
-    document.getElementById('status').style.color = "#ccc";
+    // ★修正：モードに応じて表示を切り替える
+    if (mode === 'solo') {
+        // ソロモードの場合
+        document.getElementById('vs-area').style.display = 'none';       // 相手エリア非表示
+        document.getElementById('local-player-label').style.display = 'none'; // "YOU" 非表示
+        document.getElementById('header-info').style.display = 'none';   // "Room:..." ヘッダー非表示
+        
+        myRoomId = roomId;
+    } else {
+        // マルチモードの場合（リロードなしで切り替えた時用に元に戻す）
+        document.getElementById('vs-area').style.display = 'flex';
+        document.getElementById('local-player-label').style.display = 'block';
+        document.getElementById('header-info').style.display = 'block';
+        
+        document.getElementById('status').innerText = "対戦相手を待っています...";
+        document.getElementById('status').style.color = "#ccc";
+        myRoomId = roomId;
+    }
 });
 
 socket.on('join_full', () => { document.getElementById('error-msg').innerText = "満員です！"; });
 
-// ★ゲーム開始合図受信
 socket.on('game_start', () => {
-    // リトライ画面が出ていれば消す
     document.getElementById('result-overlay').style.display = 'none';
     document.getElementById('retry-btn').style.display = 'inline-block';
     document.getElementById('retry-msg').style.display = 'none';
     
-    // ステータス更新
-    document.getElementById('status').innerText = "READY...";
-    document.getElementById('status').style.color = "#fff";
+    // 対戦の時だけREADYステータスを表示（ソロはヘッダーごと消えているので不要）
+    if (document.getElementById('vs-area').style.display !== 'none') {
+        document.getElementById('status').innerText = "READY...";
+        document.getElementById('status').style.color = "#fff";
+    }
 
-    // カウントダウン開始！
     startCountdown();
 });
 
-// ★相手がゲームオーバーになった（＝自分の勝利）
 socket.on('opponent_won', () => {
-    stopGameLoop(); // 自分の動きを止める
-    showResult(true); // "WIN"を表示
+    stopGameLoop(); 
+    showResult(true); 
 });
 
-// ▼▼▼ 新規：相手がいなくて待機に戻される処理 ▼▼▼
 socket.on('reset_waiting', () => {
-  // リザルト画面を消す
   document.getElementById('result-overlay').style.display = 'none';
-  
-  // 待機メッセージに戻す
   document.getElementById('status').innerText = "対戦相手を待っています...";
   document.getElementById('status').style.color = "#ccc";
-  
-  // 相手の画面表示をクリアしておく
   opponentCtx.clearRect(0, 0, opponentCanvas.width, opponentCanvas.height);
 });
 
-// ▼▼▼ 新規：攻撃を受け取った時の処理 ▼▼▼
 socket.on('receive_attack', (lines) => {
-  // ゲーム中（requestIdがある時）以外は攻撃を無視する
   if (requestId) {
     addGarbage(lines);
   }
 });
 
-// リトライ要求ボタン
 function requestRetry() {
     if (myRoomId) {
         socket.emit('restart_request', myRoomId);
-        document.getElementById('retry-btn').style.display = 'none';
-        document.getElementById('retry-msg').style.display = 'block';
+        // ソロの場合は「承認待ち」を出さない
+        if (document.getElementById('vs-area').style.display !== 'none') {
+            document.getElementById('retry-btn').style.display = 'none';
+            document.getElementById('retry-msg').style.display = 'block';
+        }
     }
 }
 
 
 // --- カウントダウン機能 ---
 function startCountdown() {
-    let count = 5; // 5秒前から
+    let count = 5; 
     
-    // 盤面をクリアして文字を描く関数
     const drawCount = (text) => {
-        ctx.fillStyle = '#000'; // 背景リセット
+        ctx.fillStyle = '#000'; 
         ctx.fillRect(0, 0, canvas.width, canvas.height);
         
         ctx.fillStyle = '#fff';
@@ -101,7 +112,7 @@ function startCountdown() {
             drawCount("GO!");
         } else {
             clearInterval(timer);
-            initGame(); // カウントダウン終了でゲーム本体開始
+            initGame(); 
         }
     }, 1000);
 }
@@ -152,7 +163,7 @@ let board, score, lines, level, combo, paused;
 let lastTime, dropCounter;
 let bag, nextQueue, holdType, canHold, current;
 let levelTimer = null; 
-let levelUpFrames = 0; // ★追加: レベルアップ演出の表示時間を管理する変数
+let levelUpFrames = 0; 
 
 function initGame() {
     board = Array.from({ length: ROWS }, () => Array(COLS).fill(null));
@@ -161,10 +172,13 @@ function initGame() {
     
     lastTime = 0;
     dropCounter = 0;
-    levelUpFrames = 0; // 初期化
+    levelUpFrames = 0; 
     
-    document.getElementById('status').innerText = "BATTLE!";
-    document.getElementById('status').style.color = "#4ecca3";
+    // ソロモードでなければステータスを更新（ソロならヘッダーがないので何もしない）
+    if (document.getElementById('vs-area').style.display !== 'none') {
+        document.getElementById('status').innerText = "BATTLE!";
+        document.getElementById('status').style.color = "#4ecca3";
+    }
 
     spawn();
     updateUI();
@@ -172,13 +186,10 @@ function initGame() {
     
     if(levelTimer) clearInterval(levelTimer);
     
-    // 30秒ごとにレベルアップ
     levelTimer = setInterval(() => {
         if (level < 20) {
             level++;
             updateUI();
-            
-            // ★追加: レベルが上がった瞬間に演出カウンターをセット（120フレーム＝約2秒）
             levelUpFrames = 120;
         }
     }, 30000); 
@@ -275,7 +286,7 @@ function showResult(isWin) {
         title.innerText = "YOU WIN!";
         title.style.color = "#4ecca3";
     } else {
-        title.innerText = "YOU LOSE...";
+        title.innerText = "GAME OVER";
         title.style.color = "#ff4444";
     }
 }
@@ -328,7 +339,6 @@ function draw() {
   drawPreview(holdCtx, holdType);
   drawNextQueue();
 
-  // ★追加: レベルアップ演出の描画処理
   if (levelUpFrames > 0) {
       ctx.save();
       ctx.fillStyle = "yellow";
@@ -336,13 +346,10 @@ function draw() {
       ctx.lineWidth = 2;
       ctx.font = "bold 30px sans-serif";
       ctx.textAlign = "center";
-      
-      // 画面中央より少し上に表示
       ctx.fillText("LEVEL UP!", canvas.width / 2, canvas.height / 3);
       ctx.strokeText("LEVEL UP!", canvas.width / 2, canvas.height / 3);
-      
       ctx.restore();
-      levelUpFrames--; // カウンターを減らす
+      levelUpFrames--; 
   }
 
   if (myRoomId) {
@@ -405,7 +412,6 @@ function update(time = 0) {
     }
 
     const dt = time - lastTime; lastTime = time; dropCounter += dt;
-    // 0.85乗していくことで、レベル20まで徐々に速くなるように変更
     const speed = Math.max(50, 1000 * Math.pow(0.85, level - 1));
     if (dropCounter > speed) {
       if (current && !collide(current.shape, current.x, current.y + 1)) current.y++;

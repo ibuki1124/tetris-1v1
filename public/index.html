@@ -11,12 +11,15 @@
         <h1>1v1 Tetris Online</h1>
         <p>対戦する部屋IDを入力してください</p>
         <input type="text" id="room-input" placeholder="例: room1">
-        <button onclick="joinRoom()">入室 / 作成</button>
+        <div style="margin-top: 10px;">
+            <button onclick="joinRoom()">入室 / 作成</button>
+            <button onclick="startPractice()" style="background-color: #ffcc00; margin-left: 10px;">1人で練習</button>
+        </div>
         <p id="error-msg"></p>
     </div>
 
     <div id="game-wrapper" style="display: none;">
-        <div class="header-info">
+        <div id="header-info" class="header-info">
             Room: <span id="current-room"></span> | <span id="status">Waiting...</span>
         </div>
 
@@ -30,7 +33,7 @@
         <div class="battle-container">
             
             <div class="player-area">
-                <div class="player-label">YOU</div>
+                <div id="local-player-label" class="player-label">YOU</div>
                 <div class="game-container local">
                     <div class="side-panel">
                         <div class="stat-box">
@@ -56,12 +59,13 @@
                 </div>
             </div>
 
-            <div class="vs-divider">VS</div>
-
-            <div class="player-area">
-                <div class="player-label" style="color:#ff4444;">OPPONENT</div>
-                <div class="game-container remote">
-                    <canvas id="opponent-game" width="300" height="600"></canvas>
+            <div id="vs-area" style="display: flex; gap: 20px; align-items: center;">
+                <div class="vs-divider">VS</div>
+                <div class="player-area">
+                    <div class="player-label" style="color:#ff4444;">OPPONENT</div>
+                    <div class="game-container remote">
+                        <canvas id="opponent-game" width="300" height="600"></canvas>
+                    </div>
                 </div>
             </div>
 
