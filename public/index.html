@@ -11,10 +11,35 @@
     <header id="main-header">
         <div class="logo" onclick="backToTop()">Tetris Online</div>
         
-        <div class="header-btns">
-            <button onclick="toggleRanking()" class="nav-btn rank-btn">🏆 ランキング</button>
-            <button onclick="toggleRules()" class="nav-btn help-btn">？ ルール</button>
-            <button onclick="backToTop()" class="nav-btn">トップ</button>
+        <div class="header-btns pc-only">
+            <button onclick="toggleRanking()" class="nav-btn rank-btn">
+                🏆 <span class="btn-text">ランキング</span>
+            </button>
+            <button onclick="toggleRules()" class="nav-btn help-btn">
+                ❓ <span class="btn-text">ルール</span>
+            </button>
+            <button onclick="backToTop()" class="nav-btn">
+                🏠 <span class="btn-text">トップ</span>
+            </button>
+        </div>
+
+        <div class="mobile-menu-btn mobile-only" onclick="toggleMobileMenu()">
+            ≡
+        </div>
+
+        <div id="mobile-menu-list" class="mobile-menu-list">
+            <button onclick="toggleRanking(); toggleMobileMenu()" class="menu-item">
+                🏆 ランキングを見る
+            </button>
+            <button onclick="toggleRules(); toggleMobileMenu()" class="menu-item">
+                ❓ ルールを確認
+            </button>
+            <button onclick="backToTop()" class="menu-item danger">
+                🏠 トップページへ戻る
+            </button>
+            <button onclick="toggleMobileMenu()" class="menu-item close">
+                × 閉じる
+            </button>
         </div>
     </header>
 

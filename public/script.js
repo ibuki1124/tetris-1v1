@@ -769,3 +769,20 @@ function toggleRanking() {
       }
   }
 }
+
+// ▼▼▼ 追加: スマホメニュー開閉関数 ▼▼▼
+function toggleMobileMenu() {
+  const menu = document.getElementById('mobile-menu-list');
+  menu.classList.toggle('active');
+}
+
+// 画面のどこか（メニュー外）をタップしたら閉じる処理
+document.addEventListener('click', (e) => {
+  const menu = document.getElementById('mobile-menu-list');
+  const btn = document.querySelector('.mobile-menu-btn');
+  
+  // メニューが開いていて、かつメニューボタン以外・メニュー以外をクリックした場合
+  if (menu.classList.contains('active') && !menu.contains(e.target) && !btn.contains(e.target)) {
+      menu.classList.remove('active');
+  }
+});
