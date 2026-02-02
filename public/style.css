@@ -1,8 +1,16 @@
-:root { --bg: #0a0a12; --panel: #1a1a2e; --accent: #4ecca3; }
+:root { 
+    --bg: #0a0a12; 
+    --panel: #1a1a2e; 
+    --accent: #4ecca3; 
+    --accent-hover: #3db892;
+    --secondary: #ffcc00;
+    --text-main: #fff;
+    --text-sub: #ccc;
+}
 
 body {
     background: var(--bg);
-    color: #fff;
+    color: var(--text-main);
     font-family: 'Segoe UI', sans-serif;
     text-align: center;
     margin: 0;
@@ -10,17 +18,109 @@ body {
     flex-direction: column;
     align-items: center;
     min-height: 100vh;
+    
+    /* ▼▼▼ 変更点1: 余白を消して、スクロールを完全に禁止にする ▼▼▼ */
+    /* padding-top: 60px;  ← 削除 */
+    overflow: hidden;   /* ← 追加：これではみ出し部分をカットし、スクロールバーを消す */
 }
 
-#join-screen { margin-top: 100px; }
-input { padding: 10px; font-size: 16px; border-radius: 5px; border: none; }
-button { padding: 10px 20px; font-size: 16px; cursor: pointer; background: var(--accent); border: none; border-radius: 5px; color: #000; font-weight: bold; }
-#error-msg { color: #ff4444; }
+/* ▼▼▼ 変更点2: ヘッダーを固定せず、普通に配置する ▼▼▼ */
+#main-header {
+    /* position: fixed; ← 削除 */
+    /* top: 0; left: 0; ← 削除 */
+    width: 100%;
+    height: 60px;
+    background: rgba(26, 26, 46, 1); /* 透明度なしのベタ塗りに変更 */
+    border-bottom: 1px solid #333;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 20px;
+    box-sizing: border-box;
+    /* z-index: 1000;   ← 通常配置なら不要 */
+    
+    /* フレックスボックス内で縮まないようにする */
+    flex-shrink: 0; 
+}
 
-#game-wrapper { margin-top: 20px; transform: scale(0.9); /* 全体を少し縮小して画面に収める */ }
-.header-info { margin-bottom: 10px; font-size: 1.2rem; color: #ccc; }
+.logo {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: var(--accent);
+    letter-spacing: 1px;
+}
+.nav-btn {
+    background: transparent;
+    border: 1px solid var(--text-sub);
+    color: var(--text-sub);
+    padding: 5px 15px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: all 0.2s;
+}
+.nav-btn:hover {
+    border-color: var(--text-main);
+    color: var(--text-main);
+}
 
-/* ▼▼▼ 対戦レイアウト ▼▼▼ */
+/* ▼▼▼ 変更点3: 固定ヘッダーじゃなくなったのでマージンを減らす ▼▼▼ */
+#join-screen { 
+    margin-top: 40px; /* 80pxから減らす */
+    background: var(--panel);
+    padding: 40px;
+    border-radius: 15px;
+    box-shadow: 0 0 30px rgba(0,0,0,0.5);
+}
+h1 { margin: 0; font-size: 2.5rem; }
+.subtitle { color: var(--text-sub); margin-bottom: 30px; }
+
+.input-group { margin-bottom: 20px; }
+input { 
+    padding: 12px; 
+    font-size: 16px; 
+    border-radius: 5px; 
+    border: 2px solid #333; 
+    background: #000; 
+    color: #fff; 
+    width: 200px;
+    text-align: center;
+}
+input:focus { outline: none; border-color: var(--accent); }
+
+.action-buttons { display: flex; gap: 10px; justify-content: center; }
+button { 
+    padding: 12px 24px; 
+    font-size: 16px; 
+    cursor: pointer; 
+    border: none; 
+    border-radius: 5px; 
+    font-weight: bold; 
+    transition: transform 0.1s;
+}
+button:active { transform: scale(0.98); }
+
+.primary-btn { background: var(--accent); color: #000; }
+.primary-btn:hover { background: var(--accent-hover); }
+.secondary-btn { background: var(--secondary); color: #000; }
+.secondary-btn:hover { opacity: 0.9; }
+
+#error-msg { color: #ff4444; margin-top: 15px; height: 20px;}
+
+/* ▼▼▼ ゲーム画面 ▼▼▼ */
+/* scaleを使って画面に収める調整（必要に応じて数値をいじってください） */
+#game-wrapper { margin-top: 10px; transform: scale(0.85); transform-origin: top center; }
+
+.game-info-bar { 
+    margin-bottom: 15px; 
+    font-size: 1.2rem; 
+    color: var(--text-sub); 
+    background: rgba(255,255,255,0.05);
+    padding: 5px 20px;
+    border-radius: 20px;
+    display: inline-block;
+}
+
 .battle-container {
     display: flex;
     align-items: center;
@@ -32,6 +132,7 @@ button { padding: 10px 20px; font-size: 16px; cursor: pointer; background: var(-
     font-weight: bold;
     margin-bottom: 10px;
     color: var(--accent);
+    text-shadow: 0 0 10px rgba(78, 204, 163, 0.3);
 }
 
 .game-container {
@@ -49,10 +150,10 @@ button { padding: 10px 20px; font-size: 16px; cursor: pointer; background: var(-
 /* 相手の盤面（remote） */
 .game-container.remote {
     padding: 10px;
-    background: #111; /* 少し暗く */
+    background: #111; 
 }
 .game-container.remote canvas {
-    width: 200px; /* 相手画面は少し小さく表示（CSSで縮小） */
+    width: 200px;
     height: 400px;
     border: 2px solid #555;
     background: #000;
@@ -72,3 +173,40 @@ button { padding: 10px 20px; font-size: 16px; cursor: pointer; background: var(-
 .stat-label { font-size: 0.7rem; color: #888; text-transform: uppercase; }
 .stat-value { font-size: 1.2rem; font-weight: bold; }
 .preview-canvas { background: #000; border: 1px solid #333; border-radius: 4px; }
+
+/* ▼▼▼ リザルト画面 ▼▼▼ */
+#result-overlay {
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.85);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 100;
+    backdrop-filter: blur(2px);
+}
+.result-box {
+    text-align: center;
+    background: #1a1a2e;
+    padding: 40px 60px;
+    border-radius: 15px;
+    border: 2px solid var(--accent);
+    box-shadow: 0 0 50px rgba(78, 204, 163, 0.2);
+}
+#result-title { font-size: 3rem; margin: 0 0 30px 0; color: #fff; }
+
+.result-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    width: 100%;
+}
+.result-btn { width: 100%; padding: 15px; font-size: 1.1rem; }
+.result-btn.primary { background: var(--accent); color: #000; }
+.result-btn.primary:hover { background: var(--accent-hover); }
+.result-btn.secondary { background: transparent; border: 2px solid #555; color: #ccc; }
+.result-btn.secondary:hover { border-color: #fff; color: #fff; }
+
+#retry-msg { color: #ccc; margin-top: 10px; display: none; }
+
+.controls-guide { margin-top: 20px; color: #666; font-size: 0.8rem; }

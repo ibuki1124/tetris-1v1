@@ -4,34 +4,48 @@
     <meta charset="UTF-8">
     <title>1v1 Tetris Online</title>
     <link rel="stylesheet" href="style.css">
-</head>
+    </head>
 <body>
     
+    <header id="main-header">
+        <div class="logo">Tetris Online</div>
+        <button onclick="backToTop()" class="nav-btn">トップへ戻る</button>
+    </header>
+
     <div id="join-screen">
         <h1>1v1 Tetris Online</h1>
-        <p>対戦する部屋IDを入力してください</p>
-        <input type="text" id="room-input" placeholder="例: room1">
-        <div style="margin-top: 10px;">
-            <button onclick="joinRoom()">入室 / 作成</button>
-            <button onclick="startPractice()" style="background-color: #ffcc00; margin-left: 10px;">1人で練習</button>
+        <p class="subtitle">リアルタイム対戦テトリス</p>
+        
+        <div class="input-group">
+            <p>対戦する部屋IDを入力してください</p>
+            <input type="text" id="room-input" placeholder="例: room1">
+        </div>
+
+        <div class="action-buttons">
+            <button onclick="joinRoom()" class="primary-btn">入室 / 作成</button>
+            <button onclick="startPractice()" class="secondary-btn">1人で練習</button>
         </div>
         <p id="error-msg"></p>
     </div>
 
     <div id="game-wrapper" style="display: none;">
-        <div id="header-info" class="header-info">
+        <div id="header-info" class="game-info-bar">
             Room: <span id="current-room"></span> | <span id="status">Waiting...</span>
         </div>
 
         <div id="result-overlay" style="display: none;">
             <div class="result-box">
                 <h1 id="result-title">YOU WIN!</h1>
-                <button id="retry-btn" onclick="requestRetry()">もう一度遊ぶ</button>
+                
+                <div class="result-actions">
+                    <button id="retry-btn" onclick="requestRetry()" class="result-btn primary">もう一度遊ぶ</button>
+                    <button onclick="backToTop()" class="result-btn secondary">トップページへ</button>
+                </div>
                 <p id="retry-msg">相手の承認待ち...</p>
             </div>
         </div>
+
         <div class="battle-container">
-            
             <div class="player-area">
                 <div id="local-player-label" class="player-label">YOU</div>
                 <div class="game-container local">
@@ -68,38 +82,21 @@
                     </div>
                 </div>
             </div>
-
         </div>
         
-        <div class="controls-guide" style="margin-top:20px; text-align:center;">
+        <div class="controls-guide">
             [←/A][→/D]: Move | [↑/W]: Rotate | [↓/S]: Soft Drop | [Space]: Hard Drop | [Shift]: Hold
         </div>
     </div>
 
-    <style>
-        #result-overlay {
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.85);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 100;
-        }
-        .result-box {
-            text-align: center;
-            background: #1a1a2e;
-            padding: 40px;
-            border-radius: 15px;
-            border: 2px solid #4ecca3;
-        }
-        #result-title { font-size: 3rem; margin: 0 0 20px 0; color: #fff; }
-        #retry-btn { padding: 15px 30px; font-size: 1.2rem; cursor: pointer; background: #4ecca3; border: none; border-radius: 5px; font-weight: bold; }
-        #retry-btn:hover { background: #3db892; }
-        #retry-msg { color: #ccc; margin-top: 10px; display: none; }
-    </style>
-
     <script src="/socket.io/socket.io.js"></script>
     <script src="script.js"></script>
+    
+    <script>
+        function backToTop() {
+            // サーバーとの接続を切ってトップに戻る最も確実な方法はリロード
+            window.location.reload();
+        }
+    </script>
 </body>
 </html>
