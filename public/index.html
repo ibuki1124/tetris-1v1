@@ -56,27 +56,22 @@
             <div id="my-game-area" class="player-area">
                 <div id="local-player-label" class="player-label">YOU</div>
                 <div class="game-container local">
-                    <div class="side-panel left-panel">
-                        <div class="stat-box">
-                            <div class="stat-label">Hold</div>
-                            <canvas id="hold" width="100" height="100" class="preview-canvas"></canvas>
-                        </div>
-                        <div class="stat-box">
-                            <div class="stat-label">Score</div>
-                            <div id="score" class="stat-value">0</div>
-                        </div>
-                    </div>
                     
                     <canvas id="game" width="300" height="600"></canvas>
                     
-                    <div class="side-panel right-panel">
+                    <div class="side-panel">
                         <div class="stat-box">
                             <div class="stat-label">Next</div>
                             <canvas id="next" width="100" height="300" class="preview-canvas"></canvas>
                         </div>
-                        <div class="stat-box">
-                            <div class="stat-label">Lines</div>
-                            <div id="lines" class="stat-value">0</div>
+                        <div class="stat-box" style="margin-top: 10px;">
+                            <div class="stat-label">Hold</div>
+                            <canvas id="hold" width="100" height="100" class="preview-canvas"></canvas>
+                        </div>
+                        
+                        <div id="score-box" class="stat-box" style="margin-top: 10px;">
+                            <div class="stat-label">Score</div>
+                            <div id="score" class="stat-value">0</div>
                         </div>
                     </div>
                 </div>
@@ -178,7 +173,6 @@
         function backToTop() {
             window.location.reload();
         }
-        // モーダルの開閉関数
         function toggleRules() {
             const modal = document.getElementById('rules-modal');
             if (modal.style.display === 'flex') {

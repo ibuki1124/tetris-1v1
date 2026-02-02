@@ -109,10 +109,6 @@ io.on('connection', (socket) => {
     });
 });
 
-// server.listen(3000, () => {
-//     console.log('サーバー起動: http://localhost:3000');
-// });
-
 const PORT = process.env.PORT || 3000; // Renderが指定するポート、なければ3000を使う
 server.listen(PORT, () => {
     console.log(`サーバー起動: ポート ${PORT}`);

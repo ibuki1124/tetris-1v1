@@ -115,21 +115,16 @@ socket.on('opponent_left', () => {
   const msg = document.getElementById('retry-msg');
   const retryBtn = document.getElementById('retry-btn');
 
-  // ▼ ケース1: すでに勝負がついて結果画面が出ている場合（対戦終了後の退室）
   if (overlay.style.display !== 'none') {
-      // リトライボタンを隠す（もう対戦できないため）
       if (retryBtn) retryBtn.style.display = 'none';
-      
-      // メッセージを更新して通知
       if (msg) {
           msg.innerText = "相手が退出しました";
           msg.style.display = "block";
           msg.style.color = "#ff4444";
       }
-      return; // ここで処理終了
+      return; 
   }
 
-  // ▼ ケース2: 対戦中に相手が切断した場合（不戦勝）
   stopGameLoop();
   
   const title = document.getElementById('result-title');
@@ -234,9 +229,7 @@ let lastTime, dropCounter;
 let bag, nextQueue, holdType, canHold, current;
 let levelTimer = null; 
 let levelUpFrames = 0; 
-let isPlaying = false; // ゲーム中フラグ
-
-// ★追加: パーティクル配列
+let isPlaying = false; 
 let particles = [];
 
 function initGame() {
@@ -249,7 +242,7 @@ function initGame() {
     lastTime = 0; 
     dropCounter = 0;
     levelUpFrames = 0; 
-    particles = []; // パーティクルリセット
+    particles = []; 
     
     isPlaying = true; 
     
@@ -271,7 +264,6 @@ function initGame() {
         }
     }, 30000); 
     
-    // Workerを使ってゲームループを開始
     gameTimerWorker.postMessage('start');
 }
 
@@ -349,9 +341,9 @@ function handleGameOver() {
 }
 
 function stopGameLoop() {
-    gameTimerWorker.postMessage('stop'); // Workerを停止
+    gameTimerWorker.postMessage('stop'); 
     
-    isPlaying = false; // フラグをOFF
+    isPlaying = false; 
     if(levelTimer) {
       clearInterval(levelTimer);
       levelTimer = null;
@@ -383,7 +375,6 @@ function clearLines() {
     combo++; lines += count;
     score += ([0, 100, 300, 500, 800][count] + (combo * 50)) * level;
     
-    // ★変更: ライン消去時のエフェクト
     flashEffect();
     shakeBoard(); 
     
@@ -399,32 +390,29 @@ function clearLines() {
   updateUI();
 }
 
-// ★修正: フラッシュエフェクト（CSSアニメーションを使用）
 function flashEffect() {
     canvas.classList.remove('flash-effect');
-    void canvas.offsetWidth; // リフロー発生（アニメーションリセット）
+    void canvas.offsetWidth; 
     canvas.classList.add('flash-effect');
 }
 
-// ★追加: 画面揺れエフェクト
 function shakeBoard() {
     const wrapper = document.querySelector('.game-container.local');
     if(wrapper) {
         wrapper.classList.remove('shake-effect');
-        void wrapper.offsetWidth; // リフロー
+        void wrapper.offsetWidth; 
         wrapper.classList.add('shake-effect');
     }
 }
 
-// ★追加: パーティクル生成
 function createParticles(x, y, color) {
-    for (let i = 0; i < 10; i++) { // 1回につき10個生成
+    for (let i = 0; i < 10; i++) { 
         particles.push({
-            x: x + Math.random() * BLOCK * 3 - BLOCK, // 幅を持たせる
+            x: x + Math.random() * BLOCK * 3 - BLOCK, 
             y: y,
-            vx: (Math.random() - 0.5) * 8, // 横方向の速度
-            vy: (Math.random() * -8) - 2,  // 上方向へ跳ねる速度
-            life: 1.0, // 寿命
+            vx: (Math.random() - 0.5) * 8, 
+            vy: (Math.random() * -8) - 2,  
+            life: 1.0, 
             color: color
         });
     }
@@ -447,21 +435,20 @@ function draw() {
     current.shape.forEach((row, dy) => row.forEach((v, dx) => v && drawBlock(ctx, current.x + dx, current.y + dy, COLORS[current.type])));
   }
   
-  // ★追加: パーティクルの更新と描画
   if (particles.length > 0) {
       for (let i = particles.length - 1; i >= 0; i--) {
           let p = particles[i];
           p.x += p.vx;
           p.y += p.vy;
-          p.vy += 0.5; // 重力
-          p.life -= 0.05; // 寿命を減らす
+          p.vy += 0.5; 
+          p.life -= 0.05; 
 
           if (p.life <= 0) {
               particles.splice(i, 1);
           } else {
               ctx.globalAlpha = p.life;
               ctx.fillStyle = p.color;
-              ctx.fillRect(p.x, p.y, 6, 6); // 小さな正方形
+              ctx.fillRect(p.x, p.y, 6, 6); 
               ctx.globalAlpha = 1.0;
           }
       }
@@ -500,9 +487,13 @@ function drawNextQueue() {
     shape.forEach((row, y) => row.forEach((v, x) => v && drawBlock(nextCtx, x + 1, y + 1 + (i * 4), COLORS[type], s)));
   });
 }
+
+// ★修正: スコア表示処理を復活（HTML要素がある場合のみ更新）
 function updateUI() {
-  document.getElementById('score').innerText = score.toLocaleString();
-  document.getElementById('lines').innerText = lines;
+  const scoreEl = document.getElementById('score');
+  if (scoreEl) {
+      scoreEl.innerText = score.toLocaleString();
+  }
 }
 
 document.addEventListener('keydown', e => {
@@ -527,10 +518,8 @@ document.addEventListener('keydown', e => {
   }
   if (key === ' ') { 
     let count = 0;
-    // ハードドロップ
     while (!collide(current.shape, current.x, current.y + 1)) { current.y++; count++; }
     
-    // ★追加: ハードドロップ時のエフェクト呼び出し
     createParticles(current.x * BLOCK, current.y * BLOCK, COLORS[current.type]);
     shakeBoard();
 
@@ -650,7 +639,6 @@ function setupMobileControls() {
               let count = 0;
               while (!collide(current.shape, current.x, current.y + 1)) { current.y++; count++; }
               
-              // ★追加: モバイル版ハードドロップ時のエフェクト
               createParticles(current.x * BLOCK, current.y * BLOCK, COLORS[current.type]);
               shakeBoard();
 

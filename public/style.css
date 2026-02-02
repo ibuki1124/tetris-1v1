@@ -30,33 +30,22 @@ body {
     display: flex; justify-content: space-between; align-items: center; padding: 0 20px; box-sizing: border-box; flex-shrink: 0; 
 }
 
-/* ▼▼▼ 修正: カーソルをpointerにしてクリック可能であることを示す ▼▼▼ */
 .logo { 
     font-size: 1.5rem; 
     font-weight: bold; 
     color: var(--accent); 
     letter-spacing: 1px; 
-    cursor: pointer; /* 追加 */
+    cursor: pointer; 
 }
 
-/* ヘッダーボタン類 */
-.header-btns {
-    display: flex;
-    gap: 10px;
-}
+.header-btns { display: flex; gap: 10px; }
 .nav-btn {
     background: transparent; border: 1px solid var(--text-sub); color: var(--text-sub);
     padding: 5px 15px; border-radius: 4px; cursor: pointer; font-size: 0.9rem; transition: all 0.2s; width: auto !important; 
 }
 .nav-btn:hover { border-color: var(--text-main); color: var(--text-main); }
-
-.nav-btn.help-btn {
-    border-color: var(--accent);
-    color: var(--accent);
-}
-.nav-btn.help-btn:hover {
-    background: rgba(78, 204, 163, 0.2);
-}
+.nav-btn.help-btn { border-color: var(--accent); color: var(--accent); }
+.nav-btn.help-btn:hover { background: rgba(78, 204, 163, 0.2); }
 
 /* 入室画面 */
 #join-screen { 
@@ -121,86 +110,58 @@ button:active { transform: scale(0.98); }
 .game-container {
     display: flex; gap: 15px; padding: 15px; background: var(--panel);
     border-radius: 15px; box-shadow: 0 0 30px rgba(0,0,0,0.5);
+    justify-content: center;
+    align-items: flex-start;
 }
 
 .game-container.local canvas { border: 2px solid #333; background: #000; }
 .game-container.remote { padding: 10px; background: #111; }
 .game-container.remote canvas { width: 200px; height: 400px; border: 2px solid #555; background: #000; }
 
+/* サイドパネル */
 .side-panel { display: flex; flex-direction: column; gap: 10px; width: 100px; }
 .stat-box { background: rgba(255,255,255,0.05); padding: 5px; border-radius: 8px; border-left: 3px solid var(--accent); }
 .stat-label { font-size: 0.7rem; color: #888; text-transform: uppercase; }
-.stat-value { font-size: 1.2rem; font-weight: bold; }
+
+/* ▼修正: スコアの値は表示する（ただし親要素の#score-boxが消えている） */
+.stat-value { font-size: 1.2rem; font-weight: bold; } 
+
+/* ▼追加: スコアボックスはデフォルト非表示 */
+#score-box { display: none; }
+
+/* ▼追加: ソロモード時だけスコアボックスを表示 */
+body.solo-mode #score-box { display: block; }
+
 .preview-canvas { background: #000; border: 1px solid #333; border-radius: 4px; }
 
 .vs-divider { font-size: 3rem; font-weight: 900; font-style: italic; color: #ffcc00; text-shadow: 0 0 10px orange; margin-right: 15px;}
 
 #mobile-controls { display: none; }
 
-/* ▼▼▼ 操作ガイドのスタイル装飾 (PC用) ▼▼▼ */
+/* PC用操作ガイド */
 .controls-guide {
     margin-top: 15px;
     display: flex;
     justify-content: center;
-    gap: 20px; /* 項目同士の間隔 */
+    gap: 20px; 
     flex-wrap: wrap; 
     background: rgba(0, 0, 0, 0.4);
     padding: 12px 25px;
     border-radius: 10px;
     border: 1px solid #333;
 }
-
 .guide-item {
-    display: flex;
-    align-items: center;
-    color: var(--text-sub);
-    font-size: 0.9rem;
-    white-space: nowrap; /* 折り返し防止 */
+    display: flex; align-items: center; color: var(--text-sub); font-size: 0.9rem; white-space: nowrap; 
 }
-
-/* アクション名 (移動: など) */
-.action-name {
-    font-weight: bold;
-    color: var(--accent);
-    margin-right: 8px;
-}
-
-/* キーボード風のデザイン */
+.action-name { font-weight: bold; color: var(--accent); margin-right: 8px; }
 .key-badge {
-    background: #2a2a3e;
-    border: 1px solid #555;
-    border-bottom: 3px solid #111;
-    border-radius: 5px;
-    padding: 2px 8px;
-    font-family: monospace;
-    font-weight: bold;
-    color: #fff;
-    min-width: 20px;
-    text-align: center;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.5);
+    background: #2a2a3e; border: 1px solid #555; border-bottom: 3px solid #111;
+    border-radius: 5px; padding: 2px 8px; font-family: monospace; font-weight: bold; color: #fff;
+    min-width: 20px; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.5);
 }
-
-/* SpaceやShift用に幅広にするクラス */
-.key-badge.wide {
-    padding: 2px 10px;
-    font-size: 0.8rem;
-}
-
-/* サブキー (WASD) のスタイル */
-.sub-key {
-    color: #888;
-    font-size: 0.85rem;
-    font-weight: normal;
-    margin-left: 4px;
-    margin-right: 4px;
-}
-
-/* 区切り文字 (/) */
-.separator {
-    color: #555;
-    margin: 0 4px;
-    font-weight: bold;
-}
+.key-badge.wide { padding: 2px 10px; font-size: 0.8rem; }
+.sub-key { color: #888; font-size: 0.85rem; font-weight: normal; margin-left: 4px; margin-right: 4px; }
+.separator { color: #555; margin: 0 4px; font-weight: bold; }
 
 /* リザルト */
 #result-overlay {
@@ -230,7 +191,6 @@ button:active { transform: scale(0.98); }
         padding-top: 5px;
     }
 
-    /* ラッパー */
     .game-board-area {
         flex-direction: row; 
         align-items: flex-start;
@@ -253,53 +213,53 @@ button:active { transform: scale(0.98); }
         width: 68%; 
     }
 
-    /* ★追加: ソロモード時は自分のエリアを画面幅いっぱい(95%)にして中央寄せ */
+    /* ★修正: ソロモード時は画面幅いっぱい */
     body.solo-mode #my-game-area {
-        width: 95%;
+        width: 100%;
     }
 
     .game-container.local {
-        padding: 2px;
-        gap: 1vw;
+        padding: 5px;
+        gap: 2vw;
         width: 100%;
         box-sizing: border-box;
         justify-content: center;
     }
 
+    /* ★修正: 盤面を大きく表示 (左パネル削除分) */
     .game-container.local canvas {
-        width: 55%;     
+        width: 70%; /* 元55%から拡大 */
         height: auto;   
         border: 1px solid #333; 
         background: #000;
+        max-width: none; 
     }
     
-    /* ★追加: ソロモード時はキャンバスがデカくなりすぎないように制限 */
+    /* ソロモード時のキャンバス制限 */
     body.solo-mode .game-container.local canvas {
-        max-width: 250px; /* 程よいサイズで止める */
+        width: 80%; /* さらに大きく */
+        max-width: 350px; 
     }
 
     .side-panel { 
-        width: 18%;     
-        gap: 2px;
+        width: 22%; /* 右サイドの幅確保 */    
+        gap: 10px;
     } 
-    .stat-box { padding: 1px; border-left-width: 2px; }
-    .stat-value { font-size: 0.7rem; } 
-    .stat-label { font-size: 0.4rem; }
+    .stat-box { padding: 2px; border-left-width: 2px; }
     
     .preview-canvas {
         width: 100%;
         height: auto;
     }
 
-    /* 相手のエリア（通常時） */
+    /* 相手のエリア */
     #vs-area {
         width: 28%;
-        display: flex !important; /* 強制表示 */
+        display: flex !important;
         flex-direction: column;
         align-items: center;
     }
 
-    /* ★追加: ソロモード時は相手エリアを「強制非表示」にする */
     body.solo-mode #vs-area {
         display: none !important;
     }
@@ -312,24 +272,11 @@ button:active { transform: scale(0.98); }
         display: flex;
         justify-content: center;
     }
+    .game-container.remote canvas { width: 100%; height: auto; border: 1px solid #555; }
     
-    .game-container.remote canvas {
-        width: 100%;  
-        height: auto; 
-        border: 1px solid #555;
-    }
+    .player-label { font-size: 0.9rem; margin-bottom: 2px; }
+    .vs-divider { font-size: 1.2rem; margin: 0 0 2px 0; }
     
-    .player-label {
-        font-size: 0.9rem; 
-        margin-bottom: 2px;
-    }
-
-    .vs-divider {
-        font-size: 1.2rem;
-        margin: 0 0 2px 0;
-    }
-    
-    /* スマホではPC用操作ガイドを非表示 */
     .controls-guide { display: none; }
 
     /* モバイルコントローラー */
@@ -345,18 +292,11 @@ button:active { transform: scale(0.98); }
         left: 0;
         z-index: 50; 
     }
-    .control-row {
-        display: flex;
-        justify-content: center;
-        gap: 12px;
-        width: 100%;
-    }
+    .control-row { display: flex; justify-content: center; gap: 12px; width: 100%; }
     
     .control-btn {
-        width: 55px; height: 55px;
-        border-radius: 50%;
-        border: 2px solid rgba(255,255,255,0.3);
-        background: rgba(255,255,255,0.1);
+        width: 55px; height: 55px; border-radius: 50%;
+        border: 2px solid rgba(255,255,255,0.3); background: rgba(255,255,255,0.1);
         color: #fff; font-size: 1.4rem;
         display: flex; justify-content: center; align-items: center;
         -webkit-tap-highlight-color: transparent; touch-action: none;
@@ -373,77 +313,7 @@ button:active { transform: scale(0.98); }
     #result-overlay { z-index: 2000; }
 }
 
-/* ▼▼▼ モーダルウィンドウ（ルール説明） ▼▼▼ */
-.modal {
-    display: none; 
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.8); 
-    z-index: 3000; 
-    justify-content: center;
-    align-items: center;
-    backdrop-filter: blur(5px);
-}
-
-.modal-content {
-    background: var(--panel);
-    padding: 30px;
-    border-radius: 15px;
-    border: 1px solid var(--text-sub);
-    width: 90%;
-    max-width: 500px;
-    max-height: 80vh; 
-    overflow-y: auto;
-    position: relative;
-    text-align: left; 
-    box-shadow: 0 0 50px rgba(0,0,0,0.8);
-}
-
-.close-btn {
-    position: absolute;
-    top: 15px;
-    right: 20px;
-    font-size: 2rem;
-    cursor: pointer;
-    color: var(--text-sub);
-}
-.close-btn:hover {
-    color: #fff;
-}
-
-.modal-content h2 {
-    text-align: center;
-    color: var(--accent);
-    margin-top: 0;
-    border-bottom: 1px solid #333;
-    padding-bottom: 10px;
-}
-
-.rule-section {
-    margin-bottom: 20px;
-}
-.rule-section h3 {
-    color: var(--secondary);
-    margin-bottom: 10px;
-    font-size: 1.1rem;
-}
-.rule-section ul {
-    list-style: none;
-    padding-left: 10px;
-    color: #ddd;
-    font-size: 0.95rem;
-    line-height: 1.6;
-}
-.rule-section li {
-    margin-bottom: 5px;
-}
-
-/* ▼▼▼ 追加: 演出用アニメーション ▼▼▼ */
-
-/* 画面シェイク（揺れ） */
+/* アニメーション */
 @keyframes shake {
     0% { transform: translate(0, 0); }
     10% { transform: translate(-2px, -2px); }
@@ -456,17 +326,29 @@ button:active { transform: scale(0.98); }
     80% { transform: translate(1px, 1px); }
     100% { transform: translate(0, 0); }
 }
+.shake-effect { animation: shake 0.3s cubic-bezier(.36,.07,.19,.97) both; }
 
-.shake-effect {
-    animation: shake 0.3s cubic-bezier(.36,.07,.19,.97) both;
-}
-
-/* ライン消去時のフラッシュ強化 */
 @keyframes flash {
     0% { background-color: rgba(255, 255, 255, 0.2); }
     100% { background-color: #000; }
 }
+.flash-effect { animation: flash 0.15s ease-out; }
 
-.flash-effect {
-    animation: flash 0.15s ease-out;
+/* モーダル */
+.modal {
+    display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background-color: rgba(0, 0, 0, 0.8); z-index: 3000; 
+    justify-content: center; align-items: center; backdrop-filter: blur(5px);
 }
+.modal-content {
+    background: var(--panel); padding: 30px; border-radius: 15px; border: 1px solid var(--text-sub);
+    width: 90%; max-width: 500px; max-height: 80vh; overflow-y: auto; position: relative;
+    text-align: left; box-shadow: 0 0 50px rgba(0,0,0,0.8);
+}
+.close-btn { position: absolute; top: 15px; right: 20px; font-size: 2rem; cursor: pointer; color: var(--text-sub); }
+.close-btn:hover { color: #fff; }
+.modal-content h2 { text-align: center; color: var(--accent); margin-top: 0; border-bottom: 1px solid #333; padding-bottom: 10px; }
+.rule-section { margin-bottom: 20px; }
+.rule-section h3 { color: var(--secondary); margin-bottom: 10px; font-size: 1.1rem; }
+.rule-section ul { list-style: none; padding-left: 10px; color: #ddd; font-size: 0.95rem; line-height: 1.6; }
+.rule-section li { margin-bottom: 5px; }
