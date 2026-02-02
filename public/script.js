@@ -5,40 +5,28 @@ let requestId = null;
 // --- 通信部分 ---
 function joinRoom() {
     const roomId = document.getElementById('room-input').value;
-    // ★追加: 名前を取得
     const playerName = document.getElementById('name-input').value;
     
     if (roomId) {
         myRoomId = roomId;
-        // ★修正: 名前も一緒に送る
         socket.emit('join_game', roomId, playerName);
     } else alert("部屋IDを入力してください");
 }
 
 function startPractice() {
-    // ★追加: 名前を取得
     const playerName = document.getElementById('name-input').value;
-    // ★修正: 名前も一緒に送る
     socket.emit('join_practice', playerName);
 }
 
-// ★新規: サーバーから名前リストが送られてきたら表示を更新
 socket.on('update_names', (players) => {
-    // players = [{ id: '...', name: '...' }, ...]
-    
     players.forEach(p => {
         if (p.id === socket.id) {
-            // 自分なら左側のラベルを更新
             document.getElementById('local-player-label').innerText = p.name;
         } else {
-            // 他人なら右側のラベルを更新
             document.getElementById('remote-player-label').innerText = p.name;
         }
     });
 });
-
-// ... (以下、変更なし) ...
-// join_success 以降のコードは変更ありませんが、コピーしやすいように全文載せます
 
 socket.on('join_success', (roomId, mode) => {
     document.getElementById('join-screen').style.display = 'none';
@@ -46,12 +34,12 @@ socket.on('join_success', (roomId, mode) => {
     document.getElementById('current-room').innerText = roomId;
     
     if (mode === 'solo') {
+        document.body.classList.add('solo-mode'); // クラス追加
         document.getElementById('vs-area').style.display = 'none';
-        // ソロモードでも自分の名前は表示したいので、ここは消さないでおく（レイアウト調整）
-        // document.getElementById('local-player-label').style.display = 'none'; // ←削除
         document.getElementById('header-info').style.display = 'none';
         myRoomId = roomId;
     } else {
+        document.body.classList.remove('solo-mode'); // クラス削除
         document.getElementById('vs-area').style.display = 'flex';
         document.getElementById('local-player-label').style.display = 'block';
         document.getElementById('header-info').style.display = 'block';
@@ -193,7 +181,6 @@ function initGame() {
     dropCounter = 0;
     levelUpFrames = 0; 
     
-    // ソロモードでなければステータスを更新
     if (document.getElementById('vs-area').style.display !== 'none') {
         document.getElementById('status').innerText = "BATTLE!";
         document.getElementById('status').style.color = "#4ecca3";
@@ -215,7 +202,6 @@ function initGame() {
     update();
 }
 
-// 共通ユーティリティ
 const createPiece = (type) => ({ type, shape: SHAPES[type], x: Math.floor(COLS/2) - Math.floor(SHAPES[type][0].length/2), y: type === 'I' ? -1 : 0 });
 const getNextPiece = () => {
   if (bag.length <= 7) {
@@ -305,7 +291,8 @@ function showResult(isWin) {
         title.innerText = "YOU WIN!";
         title.style.color = "#4ecca3";
     } else {
-        title.innerText = "GAME OVER";
+        // ★修正: GAME OVER -> YOU LOSE...
+        title.innerText = "YOU LOSE...";
         title.style.color = "#ff4444";
     }
 }
@@ -474,3 +461,99 @@ function addGarbage(linesCount) {
   
   draw();
 }
+
+function setupMobileControls() {
+  const btnLeft = document.getElementById('btn-left');
+  const btnRight = document.getElementById('btn-right');
+  const btnDown = document.getElementById('btn-down');
+  const btnRotate = document.getElementById('btn-rotate');
+  const btnHard = document.getElementById('btn-hard');
+  const btnHold = document.getElementById('btn-hold');
+
+  let moveInterval = null;
+
+  const actions = {
+      left: () => { 
+          if (current && !collide(current.shape, current.x - 1, current.y)) {
+              current.x--; 
+              draw(); 
+          }
+      },
+      right: () => { 
+          if (current && !collide(current.shape, current.x + 1, current.y)) {
+              current.x++; 
+              draw();
+          }
+      },
+      down: () => {
+          if (current) {
+              if (!collide(current.shape, current.x, current.y + 1)) {
+                  current.y++; score += 1; updateUI(); dropCounter = 0;
+                  draw();
+              } else {
+                  lock(); dropCounter = 0;
+              }
+          }
+      },
+      rotate: () => { if (current) attemptRotation(1); draw(); },
+      hard: () => { 
+          if (current) {
+              let count = 0;
+              while (!collide(current.shape, current.x, current.y + 1)) { current.y++; count++; }
+              score += count * 2; lock(); dropCounter = 0;
+          }
+      },
+      hold: () => {
+          if (current && canHold) {
+              if (!holdType) { holdType = current.type; spawn(); }
+              else { [holdType, current] = [current.type, createPiece(holdType)]; current.x = Math.floor(COLS/2) - Math.floor(SHAPES[current.type][0].length/2); current.y = current.type === 'I' ? -1 : 0; }
+              canHold = false;
+              draw();
+          }
+      }
+  };
+
+  const startAction = (actionName, e) => {
+      e.preventDefault(); 
+      if (!requestId) return; 
+
+      actions[actionName]();
+
+      if (['left', 'right', 'down'].includes(actionName)) {
+          if (moveInterval) clearInterval(moveInterval);
+          
+          setTimeout(() => {
+          }, 150); 
+
+          moveInterval = setInterval(() => {
+              actions[actionName]();
+          }, 100); 
+      }
+  };
+
+  const endAction = (e) => {
+      e.preventDefault();
+      if (moveInterval) {
+          clearInterval(moveInterval);
+          moveInterval = null;
+      }
+  };
+
+  const bindBtn = (elem, actionName) => {
+      if (!elem) return;
+      elem.addEventListener('touchstart', (e) => startAction(actionName, e), { passive: false });
+      elem.addEventListener('touchend', endAction);
+      elem.addEventListener('mousedown', (e) => startAction(actionName, e));
+      elem.addEventListener('mouseup', endAction);
+      elem.addEventListener('mouseleave', endAction);
+  };
+
+  bindBtn(btnLeft, 'left');
+  bindBtn(btnRight, 'right');
+  bindBtn(btnDown, 'down');
+  bindBtn(btnRotate, 'rotate');
+  bindBtn(btnHard, 'hard');
+  bindBtn(btnHold, 'hold');
+}
+
+setupMobileControls();
