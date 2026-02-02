@@ -218,8 +218,10 @@ let levelTimer = null;
 let levelUpFrames = 0; 
 let isPlaying = false; // ゲーム中フラグ
 
+// ★追加: パーティクル配列
+let particles = [];
+
 function initGame() {
-    // ★修正: stopGameLoopを最初に呼んでリセットする
     stopGameLoop(); 
 
     board = Array.from({ length: ROWS }, () => Array(COLS).fill(null));
@@ -229,8 +231,8 @@ function initGame() {
     lastTime = 0; 
     dropCounter = 0;
     levelUpFrames = 0; 
+    particles = []; // パーティクルリセット
     
-    // ★修正: stopGameLoopの後に true にする
     isPlaying = true; 
     
     if (document.getElementById('vs-area').style.display !== 'none') {
@@ -317,7 +319,6 @@ function lock() {
     clearLines();
     spawn();
     
-    // 次のミノに即座に移るため、カウンターはリセット
     dropCounter = 0;
 }
 
@@ -363,7 +364,10 @@ function clearLines() {
   if (count > 0) {
     combo++; lines += count;
     score += ([0, 100, 300, 500, 800][count] + (combo * 50)) * level;
+    
+    // ★変更: ライン消去時のエフェクト
     flashEffect();
+    shakeBoard(); 
     
     if (count >= 2 && myRoomId) {
       let attackLines = (count === 4) ? 4 : (count - 1);
@@ -377,9 +381,35 @@ function clearLines() {
   updateUI();
 }
 
+// ★修正: フラッシュエフェクト（CSSアニメーションを使用）
 function flashEffect() {
-  canvas.style.backgroundColor = '#333';
-  setTimeout(() => canvas.style.backgroundColor = '#000', 50);
+    canvas.classList.remove('flash-effect');
+    void canvas.offsetWidth; // リフロー発生（アニメーションリセット）
+    canvas.classList.add('flash-effect');
+}
+
+// ★追加: 画面揺れエフェクト
+function shakeBoard() {
+    const wrapper = document.querySelector('.game-container.local');
+    if(wrapper) {
+        wrapper.classList.remove('shake-effect');
+        void wrapper.offsetWidth; // リフロー
+        wrapper.classList.add('shake-effect');
+    }
+}
+
+// ★追加: パーティクル生成
+function createParticles(x, y, color) {
+    for (let i = 0; i < 10; i++) { // 1回につき10個生成
+        particles.push({
+            x: x + Math.random() * BLOCK * 3 - BLOCK, // 幅を持たせる
+            y: y,
+            vx: (Math.random() - 0.5) * 8, // 横方向の速度
+            vy: (Math.random() * -8) - 2,  // 上方向へ跳ねる速度
+            life: 1.0, // 寿命
+            color: color
+        });
+    }
 }
 
 function drawBlock(c, x, y, color, size = BLOCK, isGhost = false) {
@@ -398,6 +428,27 @@ function draw() {
     current.shape.forEach((row, dy) => row.forEach((v, dx) => v && drawBlock(ctx, current.x + dx, gy + dy, COLORS[current.type], BLOCK, true)));
     current.shape.forEach((row, dy) => row.forEach((v, dx) => v && drawBlock(ctx, current.x + dx, current.y + dy, COLORS[current.type])));
   }
+  
+  // ★追加: パーティクルの更新と描画
+  if (particles.length > 0) {
+      for (let i = particles.length - 1; i >= 0; i--) {
+          let p = particles[i];
+          p.x += p.vx;
+          p.y += p.vy;
+          p.vy += 0.5; // 重力
+          p.life -= 0.05; // 寿命を減らす
+
+          if (p.life <= 0) {
+              particles.splice(i, 1);
+          } else {
+              ctx.globalAlpha = p.life;
+              ctx.fillStyle = p.color;
+              ctx.fillRect(p.x, p.y, 6, 6); // 小さな正方形
+              ctx.globalAlpha = 1.0;
+          }
+      }
+  }
+
   drawPreview(holdCtx, holdType);
   drawNextQueue();
 
@@ -458,7 +509,13 @@ document.addEventListener('keydown', e => {
   }
   if (key === ' ') { 
     let count = 0;
+    // ハードドロップ
     while (!collide(current.shape, current.x, current.y + 1)) { current.y++; count++; }
+    
+    // ★追加: ハードドロップ時のエフェクト呼び出し
+    createParticles(current.x * BLOCK, current.y * BLOCK, COLORS[current.type]);
+    shakeBoard();
+
     score += count * 2; lock(); dropCounter = 0;
   }
   
@@ -472,13 +529,9 @@ document.addEventListener('keydown', e => {
     }
   }
   
-  // キー操作時も画面更新
   draw();
 });
 
-// ★修正: Workerから定期的に呼ばれる update 関数
-// ブラウザが裏でもWorkerは止まらないため、dropCounterに時間が溜まり、
-// ここで一気に消化されることで「ポーズ」にならずゲームが進行する。
 function update(time = 0) {
   if (!paused && isPlaying) {
     if (!lastTime) {
@@ -491,34 +544,22 @@ function update(time = 0) {
 
     const speed = Math.max(50, 1000 * Math.pow(0.85, level - 1));
 
-    // ★重要: whileループで溜まった時間分だけ進める
-    // ブラウザが裏に行くと、メインスレッドのこの関数は呼ばれる頻度が下がるが、
-    // Workerは正確に動いているため `dt` が大きくなる（例えば1000msなど）。
-    // このループでその分を一気に処理することで、時間経過通りにミノを落下させる。
-    
-    // フリーズ防止の回数制限
     let maxLoops = 20; 
 
     while (dropCounter > speed && maxLoops > 0) {
         if (!current || !isPlaying) break;
 
         if (!collide(current.shape, current.x, current.y + 1)) {
-            // 落下成功
             current.y++;
             dropCounter -= speed;
         } else {
-            // 固定処理
             lock();
-            
-            // 固定後は次のミノが即落ちないようにリセットし、一旦処理を抜ける
-            // (次のミノは次フレーム以降で処理)
             dropCounter = 0;
             break; 
         }
         maxLoops--;
     }
     
-    // 制限を超えた分はリセット
     if (maxLoops === 0) dropCounter = 0;
   }
   
@@ -590,6 +631,11 @@ function setupMobileControls() {
           if (current) {
               let count = 0;
               while (!collide(current.shape, current.x, current.y + 1)) { current.y++; count++; }
+              
+              // ★追加: モバイル版ハードドロップ時のエフェクト
+              createParticles(current.x * BLOCK, current.y * BLOCK, COLORS[current.type]);
+              shakeBoard();
+
               score += count * 2; lock(); dropCounter = 0;
           }
       },

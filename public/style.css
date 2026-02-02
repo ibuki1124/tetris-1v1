@@ -440,3 +440,33 @@ button:active { transform: scale(0.98); }
 .rule-section li {
     margin-bottom: 5px;
 }
+
+/* ▼▼▼ 追加: 演出用アニメーション ▼▼▼ */
+
+/* 画面シェイク（揺れ） */
+@keyframes shake {
+    0% { transform: translate(0, 0); }
+    10% { transform: translate(-2px, -2px); }
+    20% { transform: translate(2px, -2px); }
+    30% { transform: translate(-2px, 2px); }
+    40% { transform: translate(2px, 2px); }
+    50% { transform: translate(-1px, -1px); }
+    60% { transform: translate(1px, -1px); }
+    70% { transform: translate(-1px, 1px); }
+    80% { transform: translate(1px, 1px); }
+    100% { transform: translate(0, 0); }
+}
+
+.shake-effect {
+    animation: shake 0.3s cubic-bezier(.36,.07,.19,.97) both;
+}
+
+/* ライン消去時のフラッシュ強化 */
+@keyframes flash {
+    0% { background-color: rgba(255, 255, 255, 0.2); }
+    100% { background-color: #000; }
+}
+
+.flash-effect {
+    animation: flash 0.15s ease-out;
+}
