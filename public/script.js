@@ -111,21 +111,39 @@ socket.on('receive_attack', (lines) => {
 });
 
 socket.on('opponent_left', () => {
-  if (document.getElementById('result-overlay').style.display !== 'none') return;
+  const overlay = document.getElementById('result-overlay');
+  const msg = document.getElementById('retry-msg');
+  const retryBtn = document.getElementById('retry-btn');
 
+  // ▼ ケース1: すでに勝負がついて結果画面が出ている場合（対戦終了後の退室）
+  if (overlay.style.display !== 'none') {
+      // リトライボタンを隠す（もう対戦できないため）
+      if (retryBtn) retryBtn.style.display = 'none';
+      
+      // メッセージを更新して通知
+      if (msg) {
+          msg.innerText = "相手が退出しました";
+          msg.style.display = "block";
+          msg.style.color = "#ff4444";
+      }
+      return; // ここで処理終了
+  }
+
+  // ▼ ケース2: 対戦中に相手が切断した場合（不戦勝）
   stopGameLoop();
   
   const title = document.getElementById('result-title');
   title.innerText = "YOU WIN!";
   title.style.color = "#4ecca3";
   
-  const msg = document.getElementById('retry-msg');
-  msg.innerText = "相手が切断しました";
-  msg.style.display = "block";
-  msg.style.color = "#ff4444";
+  if (msg) {
+      msg.innerText = "相手が切断しました";
+      msg.style.display = "block";
+      msg.style.color = "#ff4444";
+  }
 
-  document.getElementById('result-overlay').style.display = 'flex';
-  document.getElementById('retry-btn').style.display = 'none';
+  overlay.style.display = 'flex';
+  if (retryBtn) retryBtn.style.display = 'none';
 });
 
 function requestRetry() {
