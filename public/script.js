@@ -46,7 +46,11 @@ socket.on('opponent_won', () => {
 
 // ▼▼▼ 新規：攻撃を受け取った時の処理 ▼▼▼
 socket.on('receive_attack', (lines) => {
-  addGarbage(lines);
+  // ★修正点: ゲーム中（requestIdがある時）以外は攻撃を無視する
+  // これにより、ゲームオーバー後やカウントダウン中の描画上書きを防ぐ
+  if (requestId) {
+    addGarbage(lines);
+  }
 });
 // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
 
@@ -62,7 +66,7 @@ function requestRetry() {
 
 // --- カウントダウン機能 ---
 function startCountdown() {
-    let count = 5;
+    let count = 5; // 5秒前から
     
     // 盤面をクリアして文字を描く関数
     const drawCount = (text) => {
@@ -120,7 +124,7 @@ function drawOpponent(opBoard, opCurrent) {
 const COLS = 10, ROWS = 20, BLOCK = 30;
 const COLORS = {
     I: '#00f0f0', O: '#f0f000', T: '#a000f0', S: '#00f000', Z: '#f00000', 
-    J: '#0000f0', L: '#f0a000', G: '#808080', // ← ★G(Gray)を追加
+    J: '#0000f0', L: '#f0a000', G: '#808080', 
     GHOST: 'rgba(255,255,255,0.1)'
   };
 const SHAPES = {
@@ -141,6 +145,10 @@ function initGame() {
     board = Array.from({ length: ROWS }, () => Array(COLS).fill(null));
     score = 0; lines = 0; level = 1; combo = -1;
     bag = []; nextQueue = []; holdType = null; canHold = true;
+    
+    // 時間管理変数のリセット
+    lastTime = 0;
+    dropCounter = 0;
     
     document.getElementById('status').innerText = "BATTLE!";
     document.getElementById('status').style.color = "#4ecca3";
@@ -209,10 +217,9 @@ function lock() {
       }
     }));
   
-    // ★修正ポイント：ループが終わった後に判定を行う
     if (isGameOver) {
         handleGameOver();
-        return; // ここで関数を終了させることで、下の spawn() が実行されなくなる
+        return; 
     }
   
     clearLines();
@@ -222,6 +229,11 @@ function lock() {
 // ★自分自身がゲームオーバーになった時の処理
 function handleGameOver() {
     stopGameLoop();
+    
+    // 操作中のミノを消去する
+    current = null;
+    draw(); 
+    
     // サーバーに「負けました」と報告
     socket.emit('player_gameover', myRoomId);
     // 画面に「LOSE」を表示
@@ -291,6 +303,7 @@ function drawBlock(c, x, y, color, size = BLOCK, isGhost = false) {
 function draw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   board.forEach((row, y) => row.forEach((type, x) => type && drawBlock(ctx, x, y, COLORS[type])));
+  
   if (current) {
     let gy = current.y; while (!collide(current.shape, current.x, gy + 1)) gy++;
     current.shape.forEach((row, dy) => row.forEach((v, dx) => v && drawBlock(ctx, current.x + dx, gy + dy, COLORS[current.type], BLOCK, true)));
@@ -324,6 +337,7 @@ function updateUI() {
 document.addEventListener('keydown', e => {
   if (document.getElementById('join-screen').style.display !== 'none') return;
   if (!requestId) return; // ゲーム動いてないときは操作無効
+  if (!current) return; // 操作するミノが無い時は何もしない
 
   const key = e.key.toLowerCase();
   if ((key === 'arrowleft' || key === 'a') && !collide(current.shape, current.x - 1, current.y)) current.x--;
@@ -353,11 +367,15 @@ document.addEventListener('keydown', e => {
 
 function update(time = 0) {
   if (!paused) {
+    if (!lastTime) {
+        lastTime = time;
+    }
+
     const dt = time - lastTime; lastTime = time; dropCounter += dt;
     const speed = Math.max(50, 1000 - (level - 1) * 100);
     if (dropCounter > speed) {
-      if (!collide(current.shape, current.x, current.y + 1)) current.y++;
-      else lock();
+      if (current && !collide(current.shape, current.x, current.y + 1)) current.y++;
+      else if (current) lock();
       dropCounter = 0;
     }
   }
@@ -368,36 +386,28 @@ function update(time = 0) {
 // ▼▼▼ 新規：お邪魔ライン追加処理 ▼▼▼
 function addGarbage(linesCount) {
   for (let i = 0; i < linesCount; i++) {
-      // 1. 一番上の行にブロックがあったら、押し出されて死ぬ
-      // (board[0]にnull以外の何かが入っていたらゲームオーバー)
       const isTopFull = board[0].some(cell => cell !== null);
       if (isTopFull) {
           handleGameOver();
           return;
       }
 
-      // 2. 盤面を1つ上にずらす（先頭を削除）
       board.shift();
 
-      // 3. 一番下に「穴あきグレーライン」を追加
-      const holeIdx = Math.floor(Math.random() * COLS); // 穴の位置をランダムに
-      const newRow = Array(COLS).fill('G'); // 全部グレーで埋める
-      newRow[holeIdx] = null; // 1箇所だけ穴をあける
+      const holeIdx = Math.floor(Math.random() * COLS);
+      const newRow = Array(COLS).fill('G');
+      newRow[holeIdx] = null;
       
       board.push(newRow);
   }
   
-  // 自分の操作中ピースが埋まってしまった場合の救済措置（または即死判定）
-  // 今回は簡易的に「もし現在位置が埋まっていたら一段上げる」処理を入れる
   if (current && collide(current.shape, current.x, current.y)) {
-      current.y--; // 押し上げ
-      // それでも埋まってたらゲームオーバー
+      current.y--; 
       if (collide(current.shape, current.x, current.y)) {
           handleGameOver();
       }
   }
   
-  // 画面更新を即座に反映
   draw();
 }
 // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
