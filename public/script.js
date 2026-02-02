@@ -56,17 +56,14 @@ socket.on('reset_waiting', () => {
   // 相手の画面表示をクリアしておく
   opponentCtx.clearRect(0, 0, opponentCanvas.width, opponentCanvas.height);
 });
-// ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
 
 // ▼▼▼ 新規：攻撃を受け取った時の処理 ▼▼▼
 socket.on('receive_attack', (lines) => {
-  // ★修正点: ゲーム中（requestIdがある時）以外は攻撃を無視する
-  // これにより、ゲームオーバー後やカウントダウン中の描画上書きを防ぐ
+  // ゲーム中（requestIdがある時）以外は攻撃を無視する
   if (requestId) {
     addGarbage(lines);
   }
 });
-// ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
 
 // リトライ要求ボタン
 function requestRetry() {
@@ -154,16 +151,17 @@ const nextCtx = document.getElementById('next').getContext('2d');
 let board, score, lines, level, combo, paused;
 let lastTime, dropCounter;
 let bag, nextQueue, holdType, canHold, current;
-let levelTimer = null; // ★追加：レベルアップタイマー用変数
+let levelTimer = null; 
+let levelUpFrames = 0; // ★追加: レベルアップ演出の表示時間を管理する変数
 
 function initGame() {
     board = Array.from({ length: ROWS }, () => Array(COLS).fill(null));
     score = 0; lines = 0; level = 1; combo = -1;
     bag = []; nextQueue = []; holdType = null; canHold = true;
     
-    // 時間管理変数のリセット
     lastTime = 0;
     dropCounter = 0;
+    levelUpFrames = 0; // 初期化
     
     document.getElementById('status').innerText = "BATTLE!";
     document.getElementById('status').style.color = "#4ecca3";
@@ -171,16 +169,19 @@ function initGame() {
     spawn();
     updateUI();
     if(requestId) cancelAnimationFrame(requestId);
-    // ★追加：既存のレベルタイマーがあれば消す
+    
     if(levelTimer) clearInterval(levelTimer);
-    // ★追加：30秒ごとにレベルを1上げる（最大レベル20まで）
+    
+    // 30秒ごとにレベルアップ
     levelTimer = setInterval(() => {
         if (level < 20) {
             level++;
-            // 画面に「LEVEL UP!」みたいな演出を出しても良いですが、今回はUI更新のみ
             updateUI();
+            
+            // ★追加: レベルが上がった瞬間に演出カウンターをセット（120フレーム＝約2秒）
+            levelUpFrames = 120;
         }
-    }, 30000); // 30000ms = 30秒
+    }, 30000); 
     update();
 }
 
@@ -221,21 +222,18 @@ function spawn() {
   current = createPiece(getNextPiece());
   canHold = true;
   if (collide(current.shape, current.x, current.y)) {
-      handleGameOver(); // 負け確定
+      handleGameOver(); 
   }
 }
 
 function lock() {
     let isGameOver = false;
 
-    // ブロックを盤面に固定するループ
     current.shape.forEach((row, dy) => row.forEach((v, dx) => {
       if (v) {
-          // 画面外（上）にはみ出しているかチェック
           if (current.y + dy < 0) {
               isGameOver = true;
           } 
-          // 画面内なら盤面に書き込む
           else if (current.y + dy >= 0) {
               board[current.y + dy][current.x + dx] = current.type;
           }
@@ -251,31 +249,23 @@ function lock() {
     spawn();
 }
 
-// ★自分自身がゲームオーバーになった時の処理
 function handleGameOver() {
     stopGameLoop();
-    
-    // 操作中のミノを消去する
     current = null;
     draw(); 
-    
-    // サーバーに「負けました」と報告
     socket.emit('player_gameover', myRoomId);
-    // 画面に「LOSE」を表示
     showResult(false);
 }
 
 function stopGameLoop() {
     if(requestId) cancelAnimationFrame(requestId);
     requestId = null;
-    // ★追加：レベルアップタイマーも止める
     if(levelTimer) {
       clearInterval(levelTimer);
       levelTimer = null;
   }
 }
 
-// ★結果画面表示
 function showResult(isWin) {
     const overlay = document.getElementById('result-overlay');
     const title = document.getElementById('result-title');
@@ -301,17 +291,14 @@ function clearLines() {
     combo++; lines += count;
     score += ([0, 100, 300, 500, 800][count] + (combo * 50)) * level;
     flashEffect();
-    // ▼▼▼ 新規：攻撃ロジック ▼▼▼
-    // 2列以上消した時だけ相手に送る
+    
     if (count >= 2 && myRoomId) {
-      // 送る段数の計算 (例: 2列->1段, 3列->2段, 4列->4段)
       let attackLines = (count === 4) ? 4 : (count - 1);
       socket.emit('attack', {
           roomId: myRoomId,
           lines: attackLines
       });
     }
-    // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
   } else combo = -1;
   while (board.length < ROWS) board.unshift(Array(COLS).fill(null));
   updateUI();
@@ -341,6 +328,23 @@ function draw() {
   drawPreview(holdCtx, holdType);
   drawNextQueue();
 
+  // ★追加: レベルアップ演出の描画処理
+  if (levelUpFrames > 0) {
+      ctx.save();
+      ctx.fillStyle = "yellow";
+      ctx.strokeStyle = "black";
+      ctx.lineWidth = 2;
+      ctx.font = "bold 30px sans-serif";
+      ctx.textAlign = "center";
+      
+      // 画面中央より少し上に表示
+      ctx.fillText("LEVEL UP!", canvas.width / 2, canvas.height / 3);
+      ctx.strokeText("LEVEL UP!", canvas.width / 2, canvas.height / 3);
+      
+      ctx.restore();
+      levelUpFrames--; // カウンターを減らす
+  }
+
   if (myRoomId) {
       socket.emit('update_board', { roomId: myRoomId, board: board, current: current });
   }
@@ -365,8 +369,8 @@ function updateUI() {
 
 document.addEventListener('keydown', e => {
   if (document.getElementById('join-screen').style.display !== 'none') return;
-  if (!requestId) return; // ゲーム動いてないときは操作無効
-  if (!current) return; // 操作するミノが無い時は何もしない
+  if (!requestId) return; 
+  if (!current) return; 
 
   const key = e.key.toLowerCase();
   if ((key === 'arrowleft' || key === 'a') && !collide(current.shape, current.x - 1, current.y)) current.x--;
@@ -413,7 +417,6 @@ function update(time = 0) {
   requestId = requestAnimationFrame(update);
 }
 
-// ▼▼▼ 新規：お邪魔ライン追加処理 ▼▼▼
 function addGarbage(linesCount) {
   for (let i = 0; i < linesCount; i++) {
       const isTopFull = board[0].some(cell => cell !== null);
@@ -440,4 +443,3 @@ function addGarbage(linesCount) {
   
   draw();
 }
-// ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
