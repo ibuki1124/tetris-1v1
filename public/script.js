@@ -543,10 +543,13 @@ function handleGameOver() {
   stopGameLoop();
   if (myRoomId && myRoomId.startsWith('__solo_')) {
       if (score > 0 && currentUser) { 
+        const nameInput = document.getElementById('name-input');
+        const playerName = nameInput ? nameInput.value : (originalName || 'Guest');
         socket.emit('submit_score', { 
             score: score, 
             userId: currentUser.id, 
-            difficulty: currentDifficulty 
+            difficulty: currentDifficulty, 
+            name: playerName
         });
       }
       showResult("over");

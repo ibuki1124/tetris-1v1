@@ -147,7 +147,7 @@ io.on('connection', (socket) => {
     // ▼▼▼ ランキング機能 ▼▼▼
     // (変更なし)
     socket.on('submit_score', async (data) => {
-        const name = playerNames[socket.id] || 'Guest';
+        const name = data.name || playerNames[socket.id] || 'Guest';
         const score = data.score;
         const userId = data.userId;
         const difficulty = data.difficulty || 'normal';
