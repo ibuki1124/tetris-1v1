@@ -473,10 +473,25 @@ function createParticles(x, y, color) {
 }
 
 function drawBlock(c, x, y, color, size = BLOCK, isGhost = false) {
-  c.fillStyle = color; c.globalAlpha = isGhost ? 0.3 : 1;
-  c.fillRect(x * size, y * size, size - 1, size - 1);
-  c.globalAlpha = 1;
-  if (!isGhost) { c.strokeStyle = 'rgba(255,255,255,0.1)'; c.strokeRect(x * size, y * size, size - 1, size - 1); }
+    // 修正: ゴーストの場合は色を少し変えるか、透明度を調整
+    if (isGhost) {
+        c.fillStyle = color; 
+        c.globalAlpha = 0.3; // 透明度はそのままでOK
+        c.fillRect(x * size, y * size, size - 1, size - 1);
+        c.globalAlpha = 1; // 戻す
+        // ★修正点: ゴーストの枠線をはっきりさせる
+        c.strokeStyle = 'rgba(255, 255, 255, 0.6)'; // 白っぽく明るい枠線
+        c.lineWidth = 2; // 線を少し太く
+        c.strokeRect(x * size, y * size, size - 1, size - 1);
+        c.lineWidth = 1; // 戻す
+    } else {
+        // 通常ブロック
+        c.fillStyle = color;
+        c.fillRect(x * size, y * size, size - 1, size - 1);
+        // 通常の枠線（少し立体感）
+        c.strokeStyle = 'rgba(255,255,255,0.5)';
+        c.strokeRect(x * size, y * size, size - 1, size - 1);
+    }
 }
 
 function draw() {
