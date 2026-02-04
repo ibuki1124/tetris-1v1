@@ -14,22 +14,22 @@
         
         <div class="header-btns pc-only">
             <button id="btn-login" onclick="toggleLogin()" class="nav-btn auth-btn">
-                🔑 <span class="btn-text">ログイン</span>
+                <i class="fas fa-sign-in-alt"></i> <span class="btn-text">ログイン</span>
             </button>
             
             <div id="user-info" style="display:none; align-items:center; gap:10px;">
                 <span id="user-name-display" style="color:var(--accent); font-weight:bold;"></span>
-                <button onclick="logout()" class="nav-btn" style="font-size:0.8rem;">ログアウト</button>
+                <button onclick="logout()" class="nav-btn" style="font-size:0.8rem;"><i class="fas fa-sign-out-alt"></i> ログアウト</button>
             </div>
 
             <button onclick="toggleRanking()" class="nav-btn rank-btn">
-                🏆 <span class="btn-text">ランキング</span>
+                <i class="fas fa-trophy"></i> <span class="btn-text">ランキング</span>
             </button>
             <button onclick="toggleRules()" class="nav-btn help-btn">
-                ❓ <span class="btn-text">ルール</span>
+                <i class="fas fa-question"></i> <span class="btn-text">ルール</span>
             </button>
             <button onclick="backToTop()" class="nav-btn">
-                🏠 <span class="btn-text">トップ</span>
+                <i class="fas fa-home"></i> <span class="btn-text">トップ</span>
             </button>
         </div>
 
@@ -39,16 +39,16 @@
 
         <div id="mobile-menu-list" class="mobile-menu-list">
             <button id="btn-login-mobile" onclick="toggleLogin(); toggleMobileMenu()" class="menu-item">
-                🔑 ログイン / 登録
+                <i class="fas fa-sign-in-alt"></i> ログイン / 登録
             </button>
             <button onclick="toggleRanking(); toggleMobileMenu()" class="menu-item">
-                🏆 ランキングを見る
+                <i class="fas fa-trophy"></i> ランキングを見る
             </button>
             <button onclick="toggleRules(); toggleMobileMenu()" class="menu-item">
-                ❓ ルールを確認
+                <i class="fas fa-question"></i> ルールを確認
             </button>
             <button onclick="backToTop()" class="menu-item danger">
-                🏠 トップページへ戻る
+                <i class="fas fa-home"></i> トップページへ戻る
             </button>
             <button onclick="toggleMobileMenu()" class="menu-item close">
                 × 閉じる
@@ -80,9 +80,9 @@
         <p style="margin-top:20px;">1人用モード選択</p>
         <div class="difficulty-wrapper" style="margin-bottom: 15px;">
             <select id="difficulty-select">
-                <option value="easy">易（速度一定）</option>
-                <option value="normal" selected>標準（速度上昇・対戦モードと同じ）</option>
-                <option value="hard">難（速度上昇＋お邪魔機能）</option>
+                <option value="easy">Easy（速度一定）</option>
+                <option value="normal" selected>Normal（速度上昇・対戦モードと同じ）</option>
+                <option value="hard">Hard（速度上昇＋お邪魔機能）</option>
             </select>
         </div>
 
@@ -192,7 +192,7 @@
             </div>
             <div class="guide-item" id="guide-pause">
                 <span class="action-name">ポーズ：</span>
-                <span class="key-badge wide">Esc</span>
+                <span class="key-badge wide">Esc</span><span class="key-badge">P</span>
             </div>
         </div>
     </div>
@@ -223,7 +223,7 @@
             <span class="close-btn" onclick="toggleRules()">&times;</span>
             <h2>ルール・操作方法</h2>
             <div class="rule-section">
-                <h3>💻 操作方法 (PC)</h3>
+                <h3><i class="fas fa-desktop"></i> 操作方法 (PC)</h3>
                 <ul>
                     <li><strong>移動:</strong> ← / → (または A / D)</li>
                     <li><strong>回転:</strong> ↑ (または W)</li>
@@ -234,13 +234,13 @@
                 </ul>
             </div>
             <div class="rule-section">
-                <h3>📱 操作方法 (スマホ)</h3>
+                <h3><i class="fas fa-mobile-alt"></i> 操作方法 (モバイル・タブレット)</h3>
                 <ul>
                     <li>画面下のボタンをタップまたは長押し</li>
                 </ul>
             </div>
             <div class="rule-section">
-                <h3>⚔️ 対戦モードルール</h3>
+                <h3><i class="fas fa-check-square"></i> 対戦モードルール</h3>
                 <ul>
                     <li>2列以上同時に消すと、相手にお邪魔ブロックを送れます。</li>
                     <li><strong>2列:</strong> 1段攻撃</li>
@@ -258,15 +258,15 @@
     <div id="ranking-modal" class="modal" onclick="toggleRanking()">
         <div class="modal-content" onclick="event.stopPropagation()">
             <span class="close-btn" onclick="toggleRanking()">&times;</span>
-            <h2>🏆 ランキング</h2>
+            <h2><i class="fas fa-trophy"></i> ランキング</h2>
             <div id="guest-ranking-alert" style="display:none; background:rgba(78, 204, 163, 0.1); border:1px solid var(--accent); color:var(--accent); padding:10px; border-radius:5px; margin-bottom:15px; font-size:0.9rem; text-align:center;">
                 ログインするとスコアを登録できます！<br>
                 <a href="#" onclick="toggleRanking(); toggleLogin();" style="color:#fff; font-weight:bold; text-decoration:underline;">ログイン / 登録はこちら</a>
             </div>
             
             <div class="ranking-tabs">
-                <button id="tab-global" class="tab-btn active" onclick="switchRankingTab('global')">🌎 全体TOP10</button>
-                <button id="tab-my" class="tab-btn" onclick="switchRankingTab('my')">👤 自己ベスト</button>
+                <button id="tab-global" class="tab-btn active" onclick="switchRankingTab('global')"><i class="fas fa-globe-asia"></i> 全体TOP10</button>
+                <button id="tab-my" class="tab-btn" onclick="switchRankingTab('my')"><i class="fas fa-user"></i> 自己ベスト</button>
             </div>
 
             <div class="ranking-difficulty-filter" style="display:flex; justify-content:center; gap:5px; margin-bottom:10px;">
