@@ -20,9 +20,6 @@ const playerNames = {};
 
 io.on('connection', (socket) => {
     
-    // ... (既存の join_game, join_practice などの処理はそのまま維持) ...
-    // ※以下、既存コードの io.on('connection') の中に追記してください
-
     // 入室
     socket.on('join_game', (roomId, playerName) => {
         const room = io.sockets.adapter.rooms.get(roomId);
@@ -36,8 +33,10 @@ io.on('connection', (socket) => {
             
             const updatedRoom = io.sockets.adapter.rooms.get(roomId);
             const players = [];
-            for (const id of updatedRoom) {
-                players.push({ id: id, name: playerNames[id] });
+            if (updatedRoom) {
+                for (const id of updatedRoom) {
+                    players.push({ id: id, name: playerNames[id] });
+                }
             }
             io.to(roomId).emit('update_names', players);
 
@@ -105,75 +104,93 @@ io.on('connection', (socket) => {
         }
     });
 
-    // ▼▼▼ 追加: ランキング機能用イベント ▼▼▼
+    // ▼▼▼ ランキング機能 (難易度対応版) ▼▼▼
 
     // スコア送信（ソロモード終了時）
     socket.on('submit_score', async (data) => {
         const name = playerNames[socket.id] || 'Guest';
         
-        // データからスコアとIDを取り出す
-        // (script.jsから { score: 100, userId: "..." } という形できた場合)
         const score = data.score;
-        const userId = data.userId; // ゲストなら null になる
+        const userId = data.userId;
+        // 難易度を取得。送られてこない場合は 'normal' とする
+        const difficulty = data.difficulty || 'normal';
 
-        if (!userId) return; // ユーザーIDがない場合は保存しない（ゲスト対策）
+        if (!userId) return; 
 
-        // データベースに保存（user_id も追加）
+        // データベースに保存（difficulty も追加）
         const { error } = await supabase
             .from('scores')
             .insert([
                 { 
                     name: name, 
                     score: score,
-                    user_id: userId // ここでIDを保存！
+                    user_id: userId,
+                    difficulty: difficulty // 難易度を保存
                 }
             ]);
         
         if (error) console.error('Score save error:', error);
     });
 
-    // ランキング取得リクエスト
-    socket.on('request_ranking', async () => {
-        // まずスコアの高い順に多めにデータを取得 (例: 上位100件)
+    // ランキング取得リクエスト (難易度指定対応)
+    socket.on('request_ranking', async (difficulty) => {
+        // 難易度が指定されていない場合は 'normal' をデフォルトにする
+        const targetDiff = difficulty || 'normal';
+
+        // 指定された難易度の中でスコアの高い順にデータを取得
         const { data, error } = await supabase
             .from('scores')
-            .select('name, score, user_id, created_at') // user_id も取得して識別する
+            .select('name, score, user_id, created_at')
+            .eq('difficulty', targetDiff) // ★ここで難易度フィルタリング
             .order('score', { ascending: false })
             .limit(100);
+        
         if (!error) {
             // ユーザーごとの最高スコアのみを抽出する処理
             const uniqueRanking = [];
             const userIds = new Set();
+
             for (const record of data) {
-                // まだランクインしていないユーザーなら追加
                 if (!userIds.has(record.user_id)) {
                     uniqueRanking.push(record);
                     userIds.add(record.user_id);
                 }
-                // 10人に達したら終了
                 if (uniqueRanking.length >= 10) break;
             }
+
             socket.emit('ranking_data', uniqueRanking);
         } else {
             console.error('Ranking fetch error:', error);
         }
     });
 
-    // 個人ランキング取得リクエスト
-    socket.on('request_my_ranking', async (userId) => {
+    // 個人ランキング取得リクエスト (難易度指定対応)
+    socket.on('request_my_ranking', async (data) => {
+        // data がオブジェクト { userId, difficulty } で来ることを想定
+        // 以前のコード(userIdのみ)との互換性のためチェックを入れる
+        let userId, difficulty;
+        
+        if (typeof data === 'object') {
+            userId = data.userId;
+            difficulty = data.difficulty || 'normal';
+        } else {
+            userId = data;
+            difficulty = 'normal';
+        }
+
         if (!userId) return;
 
-        // user_id が一致するスコアを高い順に10件取得
-        const { data, error } = await supabase
+        // user_id と difficulty が一致するスコアを取得
+        const { data: records, error } = await supabase
             .from('scores')
             .select('name, score, created_at')
-            .eq('user_id', userId) // ここで絞り込み
+            .eq('user_id', userId) 
+            .eq('difficulty', difficulty) // ★ここで難易度フィルタリング
             .order('score', { ascending: false })
             .limit(10);
         
         if (!error) {
-            // クライアント側は同じ 'ranking_data' イベントで受け取るのでそのまま返す
-            socket.emit('ranking_data', data);
+            socket.emit('ranking_data', records);
         } else {
             console.error('My ranking fetch error:', error);
         }

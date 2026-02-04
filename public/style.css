@@ -124,7 +124,6 @@ body {
     color: #fff;
     width: 100%;
     box-sizing: border-box;
-    text-align: center;
     cursor: pointer;
 }
 #difficulty-select:focus {
@@ -592,4 +591,26 @@ body.solo-mode #score-box { display: block; } /* ソロモード時のみ表示 
     .game-board-area {
         margin-bottom: 160px !important; 
     }
+}
+
+/* ▼▼▼ ランキング難易度フィルターボタン ▼▼▼ */
+.filter-btn {
+    background: transparent;
+    border: 1px solid #555;
+    color: #888;
+    padding: 4px 12px;
+    border-radius: 15px;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.filter-btn:hover {
+    border-color: #aaa;
+    color: #ccc;
+}
+.filter-btn.active {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #000;
+    font-weight: bold;
 }

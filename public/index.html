@@ -40,7 +40,6 @@
             <button id="btn-login-mobile" onclick="toggleLogin(); toggleMobileMenu()" class="menu-item">
                 🔑 ログイン / 登録
             </button>
-            
             <button onclick="toggleRanking(); toggleMobileMenu()" class="menu-item">
                 🏆 ランキングを見る
             </button>
@@ -67,21 +66,24 @@
                 <button id="btn-save-name" onclick="saveNameFromInput()" class="save-name-btn">変更</button>
             </div>
 
-            <p style="margin-top:15px;">難易度 (ソロプレイ用)</p>
-            <div class="difficulty-wrapper" style="margin-bottom: 15px;">
-                <select id="difficulty-select">
-                    <option value="1">EASY</option>
-                    <option value="5" selected>NORMAL</option>
-                    <option value="10">HARD</option>
-                </select>
-            </div>
-
             <p>部屋ID (対戦用)</p>
             <input type="text" id="room-input" placeholder="例: room1" autocomplete="off" readonly onfocus="this.removeAttribute('readonly');">
         </div>
 
         <div class="action-buttons">
             <button onclick="joinRoom()" class="primary-btn">入室 / 作成</button>
+        </div>
+
+        <p style="margin-top:15px;">1人用モード選択</p>
+        <div class="difficulty-wrapper" style="margin-bottom: 15px;">
+            <select id="difficulty-select">
+                <option value="easy">易（速度一定）</option>
+                <option value="normal" selected>標準（速度上昇・対戦モードと同じ）</option>
+                <option value="hard">難（速度上昇＋お邪魔機能）</option>
+            </select>
+        </div>
+
+        <div class="action-buttons">
             <button onclick="startPractice()" class="secondary-btn">1人でプレイ</button>
         </div>
         <p id="error-msg"></p>
@@ -244,6 +246,12 @@
             <div class="ranking-tabs">
                 <button id="tab-global" class="tab-btn active" onclick="switchRankingTab('global')">🌎 全体TOP10</button>
                 <button id="tab-my" class="tab-btn" onclick="switchRankingTab('my')">👤 自己ベスト</button>
+            </div>
+
+            <div class="ranking-difficulty-filter" style="display:flex; justify-content:center; gap:5px; margin-bottom:10px;">
+                <button class="filter-btn active" onclick="changeRankingDiff('easy')">Easy</button>
+                <button class="filter-btn" onclick="changeRankingDiff('normal')">Normal</button>
+                <button class="filter-btn" onclick="changeRankingDiff('hard')">Hard</button>
             </div>
 
             <div id="ranking-list" class="ranking-list">
