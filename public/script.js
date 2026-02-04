@@ -106,25 +106,35 @@ socket.on('join_success', (roomId, mode) => {
     document.getElementById('game-wrapper').style.display = 'flex'; 
     document.getElementById('current-room').innerText = roomId;
     
-    const pcPauseBtn = document.getElementById('pc-pause-btn');
+    // ▼▼▼ 修正: ポーズボタンの表示制御 ▼▼▼
+    const mobilePauseBtn = document.getElementById('btn-pause');
+    const guidePause = document.getElementById('guide-pause');
 
     if (mode === 'solo') {
         document.body.classList.add('solo-mode');
         document.getElementById('vs-area').style.display = 'none';
         document.getElementById('header-info').style.display = 'none';
-        if(pcPauseBtn) pcPauseBtn.style.display = 'block';
+        
+        // ソロモードなら表示
+        if(mobilePauseBtn) mobilePauseBtn.style.display = 'flex';
+        if(guidePause) guidePause.style.display = 'flex';
+
         myRoomId = roomId;
     } else {
         document.body.classList.remove('solo-mode');
         document.getElementById('vs-area').style.display = 'flex';
         document.getElementById('local-player-label').style.display = 'block';
         document.getElementById('header-info').style.display = 'block';
-        if(pcPauseBtn) pcPauseBtn.style.display = 'none';
+        
+        // 対戦モードなら非表示
+        if(mobilePauseBtn) mobilePauseBtn.style.display = 'none';
+        if(guidePause) guidePause.style.display = 'none';
         
         document.getElementById('status').innerText = "対戦相手を待っています...";
         document.getElementById('status').style.color = "#ccc";
         myRoomId = roomId;
     }
+    // ▲▲▲ ここまで ▲▲▲
 });
 
 socket.on('join_full', () => { document.getElementById('error-msg').innerText = "満員です！"; });
@@ -643,8 +653,14 @@ function toggleRules() { const m = document.getElementById('rules-modal'); m.sty
 
 function toggleRanking() { 
     const m = document.getElementById('ranking-modal'); 
+    const guestAlert = document.getElementById('guest-ranking-alert');
     m.style.display = (m.style.display === 'flex') ? 'none' : 'flex'; 
     if(m.style.display==='flex') {
+        if (!currentUser) {
+            if(guestAlert) guestAlert.style.display = 'block';
+        } else {
+            if(guestAlert) guestAlert.style.display = 'none';
+        }
         rankingDifficulty = 'normal'; // 初期表示はNormal
         updateRankingFilterButtons();
         switchRankingTab('global'); 

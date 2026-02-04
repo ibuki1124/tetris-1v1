@@ -106,10 +106,6 @@
             </div>
         </div>
 
-        <button id="pc-pause-btn" onclick="togglePause()" class="nav-btn" style="position:absolute; top:10px; right:10px; z-index:100; display:none;">
-            ⏸ Pause
-        </button>
-
         <div class="game-board-area">
             <div id="my-game-area" class="player-area">
                 <div id="local-player-label" class="player-label">YOU</div>
@@ -148,7 +144,6 @@
                 <button id="btn-hold" class="control-btn util-btn">HOLD</button>
                 <button id="btn-hard" class="control-btn util-btn">HARD</button>
                 <button id="btn-rotate" class="control-btn action-btn">↻</button>
-                <button id="btn-pause" class="control-btn util-btn" onclick="togglePause()" style="background:#555;">⏸</button>
             </div>
             <div class="control-row">
                 <button id="btn-left" class="control-btn move-btn">←</button>
@@ -157,6 +152,7 @@
             </div>
         </div>
 
+        <button id="btn-pause" class="control-btn util-btn" onclick="togglePause()" style="background:#555;">⏸</button>
         <div class="controls-guide">
             <div class="guide-item">
                 <span class="action-name">移動：</span>
@@ -180,7 +176,7 @@
                 <span class="action-name">ホールド：</span>
                 <span class="key-badge wide">Shift</span>
             </div>
-            <div class="guide-item">
+            <div class="guide-item" id="guide-pause">
                 <span class="action-name">ポーズ：</span>
                 <span class="key-badge wide">Esc</span>
             </div>

@@ -131,12 +131,6 @@ body {
     border-color: var(--accent);
 }
 
-/* ▼▼▼ ポーズボタン関連 ▼▼▼ */
-/* PC用のポーズボタン表示制御 */
-body.solo-mode #pc-pause-btn {
-    display: block !important; /* ソロモード時のみ表示 */
-}
-
 /* モバイルコントローラーの列調整（ボタンが4つになるので調整） */
 /* 既存の .control-row 定義を少し調整してボタンが収まるようにします */
 .control-row { 
@@ -613,4 +607,42 @@ body.solo-mode #score-box { display: block; } /* ソロモード時のみ表示 
     border-color: var(--accent);
     color: #000;
     font-weight: bold;
+}
+
+/* ▼▼▼ 独立ポーズボタン (右下配置) ▼▼▼ */
+#btn-pause {
+    display: none; /* デフォルト非表示 (JSで制御) */
+    position: fixed;
+    bottom: 30px;
+    right: 20px;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.6); /* 半透明の黒 */
+    border: 2px solid #555;
+    color: #ccc;
+    font-size: 1.5rem;
+    z-index: 100; /* 最前面 */
+    
+    /* フレックスでアイコン中央揃え */
+    justify-content: center;
+    align-items: center;
+    padding: 0;
+    padding-bottom: 4px;
+    
+    /* タッチ操作最適化 */
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+}
+
+#btn-pause:active {
+    background: rgba(255, 255, 255, 0.2);
+    transform: scale(0.95);
+}
+
+/* PC（マウス操作時）は完全に隠す */
+@media (hover: hover) and (pointer: fine) {
+    #btn-pause {
+        display: none !important;
+    }
 }
