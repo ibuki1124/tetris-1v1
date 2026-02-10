@@ -1106,7 +1106,7 @@ supabaseClient.auth.onAuthStateChange((event, session) => {
         if(pcLoginBtn) pcLoginBtn.style.display = 'none';
         if(pcUserInfo) { pcUserInfo.style.display = 'flex'; pcNameDisplay.innerText = displayName; }
         if(mobileLoginBtn) mobileLoginBtn.style.display = 'none';
-        mobileUserInfo.innerHTML = `<div style="color:var(--accent); font-weight:bold; margin-bottom:5px;">👤 ${escapeHtml(displayName)}</div><button onclick="logout(); toggleMobileMenu();" style="background:#333; border:1px solid #555; color:#ccc; padding:10px; border-radius:4px; cursor:pointer; width:100%; box-sizing: border-box;">ログアウト</button>`;
+        mobileUserInfo.innerHTML = `<div style="color:var(--accent); font-weight:bold; margin-bottom:5px;"><i class="fas fa-user"></i> ${escapeHtml(displayName)}</div><button onclick="logout(); toggleMobileMenu();" style="background:#333; border:1px solid #555; color:#ccc; padding:10px; border-radius:4px; cursor:pointer; width:100%; box-sizing: border-box;">ログアウト</button>`;
         if (!document.getElementById('mobile-user-info')) { mobileMenu.insertBefore(mobileUserInfo, mobileMenu.firstChild); }
         if (nameInput) { nameInput.value = displayName; nameInput.readOnly = false; nameInput.style.backgroundColor = "#000"; }
     } else {
