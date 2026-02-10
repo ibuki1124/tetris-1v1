@@ -18,6 +18,10 @@ app.use(express.static('public'));
 const roomRestartState = {};
 const playerNames = {}; 
 
+// ▼▼▼ 追加: ユーザーIDを管理する変数 ▼▼▼
+const playerUserIds = {}; // socket.id -> user_id
+// ▲▲▲ ここまで ▲▲▲
+
 // ▼▼▼ 修正: ルーム一覧配信 (作成者名も含めるように変更) ▼▼▼
 function notifyRoomList() {
     const rooms = io.sockets.adapter.rooms;
@@ -63,29 +67,27 @@ io.on('connection', (socket) => {
     
     notifyRoomList();
 
-    // ▼▼▼ 追加: 新規ルーム作成（自動ID割り当て） ▼▼▼
-    socket.on('create_room', (playerName) => {
-        const roomId = generateRoomId(); // ID自動生成
-        
+    // ▼▼▼ 修正: userIdを受け取り保存する ▼▼▼
+    socket.on('create_room', (playerName, userId) => { // 引数追加
+        const roomId = generateRoomId(); 
+        if (!roomId) {
+            socket.emit('join_error', '現在アクセスが集中しており部屋を作成できませんでした。もう一度お試しください。');
+            return;
+        }
         socket.join(roomId);
         playerNames[socket.id] = playerName || 'Guest';
+        playerUserIds[socket.id] = userId; // UserIDを保存
 
-        // 作成成功としてクライアントへ通知（join_successを流用）
         socket.emit('join_success', roomId, 'multi');
-        
-        // 自分の情報を更新
         io.to(roomId).emit('update_names', [{ id: socket.id, name: playerNames[socket.id] }]);
-        
-        // リスト更新
         notifyRoomList();
     });
     // ▲▲▲ ここまで ▲▲▲
 
-    // ▼▼▼ 変更: 既存ルームへの入室（ID指定） ▼▼▼
-    socket.on('join_game', (roomId, playerName) => {
+    // ▼▼▼ 修正: userIdを受け取り保存する ▼▼▼
+    socket.on('join_game', (roomId, playerName, userId) => { // 引数追加
         const room = io.sockets.adapter.rooms.get(roomId);
         
-        // 部屋が存在しない、またはプライベート部屋ではない（socketIDと同じ）場合はエラー
         if (!room || io.sockets.sockets.has(roomId)) {
             socket.emit('join_error', 'その部屋IDは見つかりません');
             return;
@@ -96,6 +98,7 @@ io.on('connection', (socket) => {
         if (userCount < 2) {
             socket.join(roomId);
             playerNames[socket.id] = playerName || 'Guest';
+            playerUserIds[socket.id] = userId; // UserIDを保存
 
             socket.emit('join_success', roomId, 'multi');
             
@@ -132,6 +135,11 @@ io.on('connection', (socket) => {
         if (playerNames[socket.id]) {
             delete playerNames[socket.id];
         }
+        // ▼▼▼ 追加: UserID情報の削除 ▼▼▼
+        if (playerUserIds[socket.id]) {
+            delete playerUserIds[socket.id];
+        }
+        // ▲▲▲ ここまで ▲▲▲
         for (const roomId of socket.rooms) {
             if (roomId !== socket.id) {
                 socket.to(roomId).emit('opponent_left');

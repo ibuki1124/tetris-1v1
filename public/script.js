@@ -67,22 +67,36 @@ gameTimerWorker.onmessage = function(e) {
     if (e.data === 'tick') update(Date.now());
 };
 
-// ▼▼▼ 追加: 新規ルーム作成処理 ▼▼▼
+// ▼▼▼ 修正: ログインチェックとUserID送信を追加 ▼▼▼
 function createRoom() {
+    // 1. ログインチェック
+    if (!currentUser) {
+        alert("対戦ルームを作成するにはログインが必要です。");
+        toggleLogin();
+        return;
+    }
     const playerName = document.getElementById('name-input').value;
     currentDifficulty = 'normal'; // 対戦はNormal固定
-    socket.emit('create_room', playerName);
+    // 2. userId (currentUser.id) も一緒に送信
+    socket.emit('create_room', playerName, currentUser.id);
 }
 // ▲▲▲ ここまで ▲▲▲
 
-// ▼▼▼ 修正: 既存ルームへの参加処理 ▼▼▼
+// ▼▼▼ 修正: ログインチェックとUserID送信を追加 ▼▼▼
 function joinRoom() {
+    // 1. ログインチェック
+    if (!currentUser) {
+        alert("対戦ルームに参加するにはログインが必要です。");
+        toggleLogin();
+        return;
+    }
     const roomId = document.getElementById('room-input').value;
     const playerName = document.getElementById('name-input').value;
     if (roomId) {
         myRoomId = roomId;
-        currentDifficulty = 'normal';
-        socket.emit('join_game', roomId, playerName);
+        currentDifficulty = 'normal'; 
+        // 2. userId (currentUser.id) も一緒に送信
+        socket.emit('join_game', roomId, playerName, currentUser.id);
     } else {
         document.getElementById('error-msg').innerText = "部屋IDを入力してください";
     }
