@@ -16,7 +16,6 @@ let isAuth0Initializing = true; // ★重要: Auth0の準備中フラグ
 
 // ▼▼▼ Auth0初期化とLINEログイン判定 ▼▼▼
 async function initAuth0() {
-    console.log("[DEBUG] initAuth0: 開始");
     try {
         auth0Client = await auth0.createAuth0Client({
             domain: AUTH0_DOMAIN,
@@ -29,7 +28,6 @@ async function initAuth0() {
 
         // 1. ログイン後のリダイレクトバック処理
         if (location.search.includes("state=") && (location.search.includes("code=") || location.search.includes("error="))) {
-            console.log("[DEBUG] initAuth0: リダイレクトバック検知");
             await auth0Client.handleRedirectCallback();
             window.history.replaceState({}, document.title, "/");
         }
@@ -39,7 +37,6 @@ async function initAuth0() {
         if (isAuthenticated) {
             const user = await auth0Client.getUser();
             const token = await auth0Client.getTokenSilently();
-            console.log("[DEBUG] initAuth0: Auth0ログイン済み", user);
 
             // Supabase連携
             supabaseClient.realtime.setAuth(token);
@@ -61,7 +58,6 @@ async function initAuth0() {
         console.error("[DEBUG] Auth0 Init Error:", e);
     } finally {
         isAuth0Initializing = false;
-        console.log("[DEBUG] initAuth0: 完了 (isAuth0Initializing = false)");
         
         // どちらも未ログインの場合のみUIクリア（タイミング調整用）
         if (!currentUser) {
@@ -75,7 +71,6 @@ initAuth0();
 
 // ▼▼▼ UI更新ロジック (デバッグ機能強化版) ▼▼▼
 function updateUserUI(user) {
-    console.log("[DEBUG] updateUserUI 実行: ユーザー =", user ? user.id : "null");
 
     const pcLoginBtn = document.getElementById('btn-login');
     const pcUserInfo = document.getElementById('user-info');
@@ -252,7 +247,6 @@ function startPractice() {
     } else {
         currentDifficulty = 'normal';
     }
-    console.log("選択された難易度:", currentDifficulty);
     socket.emit('join_practice', playerName);
 }
 
@@ -567,10 +561,8 @@ function initGame() {
     if(garbageTimer) clearInterval(garbageTimer);
 
     if (currentDifficulty === 'easy') {
-        console.log("Mode: Easy");
     } 
     else if (currentDifficulty === 'normal') {
-        console.log("Mode: Normal");
         levelTimer = setInterval(() => {
             if (level < 20) {
                 level++;
@@ -580,7 +572,6 @@ function initGame() {
         }, 30000);
     } 
     else if (currentDifficulty === 'hard') {
-        console.log("Mode: Hard");
         levelTimer = setInterval(() => {
             if (level < 20) {
                 level++;
@@ -1142,7 +1133,6 @@ if (nameInputEl) {
 async function saveNameFromInput() {
     const newName = nameInputEl.value.trim();
     const msgEl = document.getElementById('save-msg');
-    console.log("[DEBUG] saveNameFromInput: 名前変更開始", newName);
     
     if (!newName) return;
     if (!currentUser) {
@@ -1159,7 +1149,6 @@ async function saveNameFromInput() {
             });
 
         if (error) throw error;
-        console.log("[DEBUG] saveNameFromInput: DB更新成功");
 
         originalName = newName;
         if (currentUser.user_metadata) {
@@ -1189,7 +1178,6 @@ async function saveNameFromInput() {
 }
 
 async function fetchUserProfile(user) {
-    console.log("[DEBUG] fetchUserProfile: 開始 user_id =", user?.id);
     if (!user || !user.id) return user;
     
     try {
@@ -1206,7 +1194,6 @@ async function fetchUserProfile(user) {
         const { data, error } = await Promise.race([dbPromise, timeoutPromise]);
             
         if (data && data.name) {
-            console.log("[DEBUG] fetchUserProfile: 名前取得成功", data.name);
             if (!user.user_metadata) user.user_metadata = {};
             user.user_metadata.display_name = data.name;
         }
@@ -1237,7 +1224,6 @@ async function handleAuth() {
     const password = document.getElementById('password-input').value;
     const errorMsg = document.getElementById('auth-error-msg');
     
-    console.log(`[DEBUG] handleAuth called. Mode: ${isLoginMode ? 'Login' : 'SignUp'}, Email: ${email}`);
 
     if (!email || !password) { 
         errorMsg.innerText = "メールとパスワードを入力してください"; 
@@ -1257,19 +1243,16 @@ async function handleAuth() {
             });
         }
         
-        console.log("[DEBUG] Supabase Auth Result:", result);
 
         if (result.error) throw result.error;
 
         if (result.data.session) {
-            console.log("[DEBUG] handleAuth: Session exists. 更新処理を開始します。");
             let tempUser = result.data.session.user;
             currentUser = await fetchUserProfile(tempUser);
             updateUserUI(currentUser);
             toggleLogin(); 
             document.getElementById('email-input').value = "";
             document.getElementById('password-input').value = "";
-            console.log("[DEBUG] handleAuth: 更新完了、モーダルを閉じました。");
         } else if (result.data.user && !result.data.session) {
             console.warn("[DEBUG] handleAuth: User created but NO session. (Email confirm needed?)");
             errorMsg.innerText = "確認メールを送信しました。リンクをクリックしてください。";
@@ -1288,7 +1271,6 @@ async function handleAuth() {
 }
 
 async function signInWithProvider(provider) {
-    console.log("[DEBUG] signInWithProvider called:", provider);
     try {
         if (provider === 'line') {
             if (!auth0Client) {
@@ -1303,13 +1285,11 @@ async function signInWithProvider(provider) {
             });
         } else {
             const redirectUrl = window.location.origin;
-            console.log("[DEBUG] Google Redirect URL:", redirectUrl);
             const { data, error } = await supabaseClient.auth.signInWithOAuth({
                 provider: provider,
                 options: { redirectTo: redirectUrl },
             });
             if (error) throw error;
-            console.log("[DEBUG] Google Login Redirecting...", data);
         }
     } catch (error) {
         console.error("[DEBUG] signInWithProvider Error:", error);
@@ -1318,55 +1298,44 @@ async function signInWithProvider(provider) {
 }
 
 async function logout() {
-    console.log("[DEBUG] logout called");
     if (auth0Client && await auth0Client.isAuthenticated()) {
-        console.log("[DEBUG] logout: Auth0 Logout");
         auth0Client.logout({
             logoutParams: {
                 returnTo: window.location.origin
             }
         });
     } else {
-        console.log("[DEBUG] logout: Supabase Logout");
         await supabaseClient.auth.signOut();
         window.location.reload();
     }
 }
 
 supabaseClient.auth.onAuthStateChange(async (event, session) => {
-    console.log(`[DEBUG] onAuthStateChange: Event=${event}`, session);
 
     if (auth0Client && location.search.includes("code=")) {
-        console.log("[DEBUG] onAuthStateChange: Auth0 Callback処理中のためスキップ");
         return;
     }
 
     if (session) {
-        console.log("[DEBUG] onAuthStateChange: セッションあり。ユーザー設定開始");
         let tempUser = session.user;
         
         if (currentUser && currentUser.id === tempUser.id) {
-            console.log("[DEBUG] onAuthStateChange: 既にログイン済みのためUI更新スキップ");
             return;
         }
 
         currentUser = await fetchUserProfile(tempUser);
         updateUserUI(currentUser);
     } else {
-        console.log("[DEBUG] onAuthStateChange: セッションなし");
 
         if (isAuth0Initializing) {
-            console.log("[DEBUG] onAuthStateChange: Auth0初期化待ちのためログアウト保留");
             return; 
         }
         
         if (currentUser && currentUser.provider === 'auth0') {
-            console.log("[DEBUG] onAuthStateChange: Auth0ユーザーとしてログイン中のためログアウト回避");
             return;
         }
 
         if (currentUser) {
-            console.log("[DEBUG] onAuthStateChange: ログアウト処理実行");
             currentUser = null;
             updateUserUI(null);
         }
