@@ -33,7 +33,7 @@
                 <i class="fas fa-question"></i> ルールを確認
             </button>
             
-            <button onclick="backToTop()" class="menu-item danger" style="margin-top:auto;">
+            <button onclick="backToTop()" class="menu-item danger">
                 <i class="fas fa-home"></i> トップページへ戻る
             </button>
             
@@ -57,13 +57,13 @@
 
         <div class="action-buttons" style="margin-bottom: 20px;">
             <button onclick="createRoom()" class="primary-btn" style="background: linear-gradient(45deg, #4ecca3, #2a9d8f);">
-                ＋ 新規ルーム作成 (ID自動生成)
+                ＋ 新規ルーム作成
             </button>
         </div>
 
         <div class="input-group" style="margin-bottom: 10px;">
             <div style="display:flex; gap:5px;">
-                <input type="text" id="room-input" placeholder="部屋ID" 
+                <input type="text" id="room-input" placeholder="部屋ID（数字6桁）" 
                     maxlength="6" inputmode="numeric" autocomplete="off"
                     oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 6)"
                     style="letter-spacing: 2px; font-weight: bold;"
@@ -80,9 +80,9 @@
         <p style="margin-top:20px;">1人用モード選択</p>
         <div class="difficulty-wrapper" style="margin-bottom: 15px;">
             <select id="difficulty-select">
-                <option value="easy">易（速度一定）</option>
-                <option value="normal" selected>標準（速度上昇・対戦モードと同じ）</option>
-                <option value="hard">難（速度上昇＋お邪魔機能）</option>
+                <option value="easy">Easy（速度一定）</option>
+                <option value="normal" selected>Normal（速度上昇・対戦モードと同じ）</option>
+                <option value="hard">Hard（速度上昇＋お邪魔機能）</option>
             </select>
         </div>
 

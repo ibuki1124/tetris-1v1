@@ -62,7 +62,7 @@ body {
     top: 0;
     right: -320px; /* 画面外(右)に隠しておく */
     width: 280px;
-    height: 100vh;
+    height: 100%;
     
     background: rgba(10, 10, 18, 0.95); /* 背景色 */
     backdrop-filter: blur(10px); /* すりガラス効果 */
